@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const axios = require('axios');
 const { User, UserToken } = require('../models');
 const { Op } = require('sequelize');
+const jwtConfig = require('../config/jwt');
 
 const NOTIFICATION_SERVICE_URL = process.env.NOTIFICATION_SERVICE_URL || 'http://notification-service:3006';
 
@@ -119,8 +120,8 @@ class AuthController {
           email: user.email, 
           role: user.role 
         },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+        jwtConfig.secret,
+        { expiresIn: jwtConfig.expiresIn }
       );
 
       res.json({
