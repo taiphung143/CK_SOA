@@ -23,8 +23,9 @@ const validate = (schema) => {
 
 // Validation schemas
 const registerSchema = Joi.object({
-  name: Joi.string().min(2).max(100).required(),
-  username: Joi.string().alphanum().min(3).max(50).required(),
+  full_name: Joi.string().min(2).max(100).required(),
+  name: Joi.string().min(2).max(100).optional(),
+  username: Joi.string().alphanum().min(3).max(50).optional(),
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required()
 });

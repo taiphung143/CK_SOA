@@ -129,6 +129,29 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+app.post('/api/auth/register', async (req, res) => {
+  console.log(`[${new Date().toISOString()}] ✅ Manual proxy route HIT: POST /api/auth/register`);
+  console.log('Request body:', req.body);
+  
+  try {
+    const response = await axios.post(`${SERVICES.user}/api/auth/register`, req.body, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      timeout: 30000
+    });
+    console.log(`[${new Date().toISOString()}] ✅ Got response from user-service: ${response.status}`);
+    return res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] ❌ Register proxy error:`, error.message);
+    if (error.response) {
+      return res.status(error.response.status).json(error.response.data);
+    } else {
+      return res.status(502).json({ success: false, message: 'Service unavailable' });
+    }
+  }
+});
+
 // Route proxying
 // User Service routes - /api/auth/login handled manually above
 // app.use('/api/auth', createProxyMiddleware(proxyOptions('user'))); // Commented out - manually handling auth routes

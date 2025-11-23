@@ -11,12 +11,18 @@ const NOTIFICATION_SERVICE_URL = process.env.NOTIFICATION_SERVICE_URL || 'http:/
 class AuthController {
   async register(req, res, next) {
     try {
-      const { name, username, email, password } = req.body;
+      const { full_name, name, username, email, password } = req.body;
+      
+      // Use full_name if provided, otherwise fall back to name
+      const userName = full_name || name;
+      
+      // Generate username from email if not provided
+      const userUsername = username || email.split('@')[0];
 
       // Check if user exists
       const existingUser = await User.findOne({
         where: {
-          [Op.or]: [{ email }, { username }]
+          [Op.or]: [{ email }, { username: userUsername }]
         }
       });
 
@@ -34,8 +40,8 @@ class AuthController {
 
       // Create user
       const user = await User.create({
-        name,
-        username,
+        name: userName,
+        username: userUsername,
         email,
         password: hashedPassword
       });
@@ -60,7 +66,7 @@ class AuthController {
           channel: 'email',
           template_code: 'USER_VERIFICATION',
           variables: {
-            userName: name,
+            userName: userName,
             verificationToken: verificationToken
           }
         });
