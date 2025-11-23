@@ -13,23 +13,12 @@
     </div>
 
     <script>
-        // Perform logout
-        fetch('/api/auth/logout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        })
-        .then(() => {
-            // Clear local storage
-            localStorage.clear();
-            sessionStorage.clear();
-            // Redirect to home
-            window.location.href = 'home.html';
-        })
-        .catch(err => {
-            console.error('Logout error:', err);
-            // Redirect anyway
-            window.location.href = 'home.html';
-        });
+        // Perform logout - just clear client-side storage
+        // Clear local storage
+        localStorage.clear();
+        sessionStorage.clear();
+        // Redirect to home
+        window.location.href = 'home.html';
     </script>
 </body>
 </html>

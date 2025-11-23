@@ -152,6 +152,28 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
+app.get('/api/auth/verify-email/:token', async (req, res) => {
+  console.log(`[${new Date().toISOString()}] ✅ Manual proxy route HIT: GET /api/auth/verify-email/${req.params.token}`);
+  
+  try {
+    const response = await axios.get(`${SERVICES.user}/api/auth/verify-email/${req.params.token}`, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      timeout: 30000
+    });
+    console.log(`[${new Date().toISOString()}] ✅ Got response from user-service: ${response.status}`);
+    return res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] ❌ Verify email proxy error:`, error.message);
+    if (error.response) {
+      return res.status(error.response.status).json(error.response.data);
+    } else {
+      return res.status(502).json({ success: false, message: 'Service unavailable' });
+    }
+  }
+});
+
 // Route proxying
 // User Service routes - /api/auth/login handled manually above
 // app.use('/api/auth', createProxyMiddleware(proxyOptions('user'))); // Commented out - manually handling auth routes

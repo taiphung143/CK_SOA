@@ -1,4 +1,5 @@
 const { Order, OrderItem } = require('../models');
+const sequelize = require('../config/database');
 const axios = require('axios');
 const { Op } = require('sequelize');
 
@@ -270,6 +271,69 @@ class OrderController {
         success: true,
         message: 'Order cancelled successfully',
         data: order
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getStats(req, res, next) {
+    try {
+      const total = await Order.count();
+      
+      // Get orders by status
+      const statusCounts = await Order.findAll({
+        attributes: [
+          'status',
+          [sequelize.fn('COUNT', sequelize.col('status')), 'count']
+        ],
+        group: ['status']
+      });
+
+      const byStatus = {};
+      statusCounts.forEach(item => {
+        byStatus[item.status] = parseInt(item.dataValues.count);
+      });
+
+      res.json({
+        success: true,
+        total: total,
+        byStatus: byStatus
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getRevenue(req, res, next) {
+    try {
+      const total = await Order.sum('total_amount') || 0;
+      
+      // Get monthly revenue for the last 12 months
+      const monthlyRevenue = await Order.findAll({
+        attributes: [
+          [sequelize.fn('YEAR', sequelize.col('created_at')), 'year'],
+          [sequelize.fn('MONTH', sequelize.col('created_at')), 'month'],
+          [sequelize.fn('SUM', sequelize.col('total_amount')), 'amount']
+        ],
+        where: {
+          created_at: {
+            [Op.gte]: new Date(new Date().setFullYear(new Date().getFullYear() - 1))
+          }
+        },
+        group: ['year', 'month'],
+        order: [['year', 'ASC'], ['month', 'ASC']]
+      });
+
+      const monthly = monthlyRevenue.map(item => ({
+        month: `${item.dataValues.year}-${item.dataValues.month.toString().padStart(2, '0')}`,
+        amount: parseFloat(item.dataValues.amount)
+      }));
+
+      res.json({
+        success: true,
+        total: total,
+        monthly: monthly
       });
     } catch (error) {
       next(error);

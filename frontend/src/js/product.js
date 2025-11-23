@@ -27,7 +27,8 @@ async function loadProductDetails(productId) {
         const response = await fetch(`${API_BASE_URL}/products/${productId}`);
         
         if (response.ok) {
-            currentProduct = await response.json();
+            const result = await response.json();
+            currentProduct = result.data;
             renderProductDetails(currentProduct, container);
         } else {
             container.innerHTML = '<div class="alert alert-danger">Product not found.</div>';

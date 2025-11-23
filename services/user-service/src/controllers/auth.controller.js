@@ -46,7 +46,7 @@ class AuthController {
         password: hashedPassword
       });
 
-      // Generate verification token
+      // Generate verification token (kept for future use)
       const verificationToken = crypto.randomBytes(32).toString('hex');
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24); // 24 hours
@@ -59,6 +59,9 @@ class AuthController {
       });
 
       // Send verification email via Notification Service
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
+      const verificationUrl = `${frontendUrl}/verify-email/${verificationToken}`;
+      
       try {
         await axios.post(`${NOTIFICATION_SERVICE_URL}/api/notifications/send`, {
           user_id: user.id,
@@ -67,11 +70,11 @@ class AuthController {
           template_code: 'USER_VERIFICATION',
           variables: {
             userName: userName,
-            verificationToken: verificationToken
+            verificationUrl: verificationUrl
           }
         });
       } catch (error) {
-        console.error('Failed to send verification email:', error);
+        console.error('Failed to send verification email:', error.message);
       }
 
       res.status(201).json({

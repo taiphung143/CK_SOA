@@ -33,7 +33,8 @@ async function loadCategories() {
         const response = await fetch(`${API_BASE_URL}/products/categories`);
         
         if (response.ok) {
-            const categories = await response.json();
+            const result = await response.json();
+            const categories = result.data || [];
             renderCategoryFilter(categories);
         }
     } catch (error) {

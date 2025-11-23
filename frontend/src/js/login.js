@@ -11,8 +11,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check if already logged in
     const token = localStorage.getItem('authToken');
     if (token) {
-        // Redirect to home or profile
-        window.location.href = '/';
+        const userData = localStorage.getItem('userData');
+        try {
+            const user = JSON.parse(userData);
+            // Redirect based on role
+            if (user && user.role === 'admin') {
+                window.location.href = '/view_admin/dashboard.html';
+            } else {
+                window.location.href = '/';
+            }
+        } catch (error) {
+            // If userData parsing fails, just redirect to home
+            window.location.href = '/';
+        }
     }
 });
 
@@ -84,17 +95,28 @@ async function handleLoginSubmit(e) {
         if (response.ok) {
             // Save token and user data (API returns data.data)
             const responseData = data.data || data;
+            console.log('Login response data:', responseData);
+            console.log('User data:', responseData.user);
+            console.log('User role:', responseData.user?.role);
+            
             localStorage.setItem('authToken', responseData.token);
             localStorage.setItem('userData', JSON.stringify(responseData.user));
 
             hideError();
             showSuccess('Login successful! Redirecting...');
             
+            console.log('🔐 Login successful! User role:', responseData.user?.role);
+            console.log('📦 Storing token and user data...');
+            
             // Redirect based on role
             setTimeout(() => {
                 if (responseData.user && responseData.user.role === 'admin') {
+                    console.log('🚀 Redirecting admin to dashboard: /view_admin/dashboard.html');
+                    console.log('Current location before redirect:', window.location.href);
                     window.location.href = '/view_admin/dashboard.html';
+                    console.log('Location after assignment:', window.location.href);
                 } else {
+                    console.log('🏠 Redirecting regular user to home');
                     window.location.href = '/';
                 }
             }, 1000);

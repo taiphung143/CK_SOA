@@ -38,7 +38,13 @@ const Product = sequelize.define('Product', {
   },
   active: {
     type: DataTypes.BOOLEAN,
-    defaultValue: true
+    defaultValue: true,
+    field: 'active'
+  },
+  view_count: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    field: 'view_count'
   },
   sub_category_id: {
     type: DataTypes.INTEGER,

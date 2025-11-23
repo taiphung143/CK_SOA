@@ -63,14 +63,28 @@ function updateHeaderForLoggedInUser(userData) {
     const displayName = userData.name || userData.username || userData.email;
     console.log('👤 Display name:', displayName, '| Role:', userData.role);
     
-    authLinksContainer.innerHTML = `
-        <a href="${isAdmin ? '/view_admin/dashboard' : '/profile'}" class="nav-link">
-            <i class="fas fa-user"></i> ${displayName}
-        </a>
-        <a href="/logout" class="nav-link">
-            <i class="fas fa-sign-out-alt"></i> Logout
-        </a>
-    `;
+    if (isAdmin) {
+        authLinksContainer.innerHTML = `
+            <a href="/profile" class="nav-link">
+                <i class="fas fa-user"></i> ${displayName}
+            </a>
+            <a href="/view_admin/dashboard.html" class="nav-link">
+                <i class="fas fa-cog"></i> Admin
+            </a>
+            <a href="/logout" class="nav-link">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        `;
+    } else {
+        authLinksContainer.innerHTML = `
+            <a href="/profile" class="nav-link">
+                <i class="fas fa-user"></i> ${displayName}
+            </a>
+            <a href="/logout" class="nav-link">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        `;
+    }
     console.log('✅ Header updated successfully');
 }
 

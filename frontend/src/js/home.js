@@ -19,7 +19,8 @@ async function loadCategories() {
         const response = await fetch(`${API_BASE_URL}/products/categories`);
         
         if (response.ok) {
-            const categories = await response.json();
+            const result = await response.json();
+            const categories = result.data || [];
             renderCategories(categories, categoriesContainer);
         } else {
             categoriesContainer.innerHTML = '<p>Failed to load categories.</p>';
@@ -37,19 +38,13 @@ function renderCategories(categories, container) {
         return;
     }
 
-    let html = '<div class="row">';
+    let html = '<div class="div-category">';
     categories.forEach(category => {
         html += `
-            <div class="col-md-3 col-sm-6 mb-4">
-                <a href="category.html?id=${category.id}" class="category-card">
-                    <div class="card">
-                        <img src="${category.image || '../images/default-category.jpg'}" class="card-img-top" alt="${category.name}">
-                        <div class="card-body text-center">
-                            <h5 class="card-title">${category.name}</h5>
-                        </div>
-                    </div>
-                </a>
-            </div>
+            <a href="category.html?id=${category.id}" class="link-category">
+                <img src="${category.image || '../images/default-category.jpg'}" alt="${category.name}">
+                <p>${category.name}</p>
+            </a>
         `;
     });
     html += '</div>';
@@ -66,7 +61,8 @@ async function loadDealsOfTheDay() {
         const response = await fetch(`${API_BASE_URL}/products?hasDiscount=true&limit=8`);
         
         if (response.ok) {
-            const products = await response.json();
+            const result = await response.json();
+            const products = result.data?.products || [];
             renderProductCarousel(products, dealsContainer, 'deals-swiper');
         } else {
             dealsContainer.innerHTML = '<p>No deals available.</p>';
@@ -86,7 +82,8 @@ async function loadBestSellers() {
         const response = await fetch(`${API_BASE_URL}/products?sortBy=popularity&limit=8`);
         
         if (response.ok) {
-            const products = await response.json();
+            const result = await response.json();
+            const products = result.data?.products || [];
             renderProductCarousel(products, bestsellersContainer, 'bestsellers-swiper');
         } else {
             bestsellersContainer.innerHTML = '<p>No bestsellers available.</p>';
@@ -116,7 +113,8 @@ async function loadRecentlyViewed() {
         });
         
         if (response.ok) {
-            const products = await response.json();
+            const result = await response.json();
+            const products = result.data || [];
             if (products && products.length > 0) {
                 renderProductCarousel(products, recentContainer, 'recent-swiper');
             } else {
@@ -142,21 +140,27 @@ function renderProductCarousel(products, container, swiperClass) {
         <div class="swiper-wrapper">`;
     
     products.forEach(product => {
-        const hasDiscount = product.discount_percent > 0;
-        const originalPrice = product.price;
+        // Get price from first SKU
+        const skuPrice = product.skus && product.skus.length > 0 ? parseFloat(product.skus[0].price) : 0;
+        
+        // For now, disable discount logic since it's not in the API response
+        const hasDiscount = false; // product.discount_percent > 0;
+        const originalPrice = skuPrice;
         const discountedPrice = hasDiscount ? originalPrice * (1 - product.discount_percent / 100) : originalPrice;
         
         html += `
             <div class="swiper-slide">
                 <div class="product-card">
                     ${hasDiscount ? `<span class="badge discount-badge">-${product.discount_percent}%</span>` : ''}
-                    <a href="product.html?id=${product.id}">
-                        <img src="${product.image_thumbnail || '../images/default-product.jpg'}" alt="${product.name}">
-                    </a>
+                    <div class="product-image">
+                        <a href="product.html?id=${product.id}">
+                            <img src="${product.image_thumbnail || '../images/product-image.png'}" alt="${product.name}">
+                        </a>
+                    </div>
                     <div class="product-info">
-                        <h5><a href="product.html?id=${product.id}">${product.name}</a></h5>
+                        <div class="product-name"><a href="product.html?id=${product.id}">${product.name}</a></div>
                         <div class="product-price">
-                            <span class="price">$${discountedPrice.toFixed(2)}</span>
+                            <span class="price">$${originalPrice.toFixed(2)}</span>
                             ${hasDiscount ? `<span class="original-price">$${originalPrice.toFixed(2)}</span>` : ''}
                         </div>
                         <button class="btn btn-primary add-to-cart-btn" onclick="addToCart(${product.id})">
@@ -176,30 +180,53 @@ function renderProductCarousel(products, container, swiperClass) {
     
     container.innerHTML = html;
     
-    // Initialize Swiper
-    new Swiper(`.${swiperClass}`, {
-        slidesPerView: 1,
-        spaceBetween: 20,
-        navigation: {
-            nextEl: `.${swiperClass} .swiper-button-next`,
-            prevEl: `.${swiperClass} .swiper-button-prev`,
-        },
-        pagination: {
-            el: `.${swiperClass} .swiper-pagination`,
-            clickable: true,
-        },
-        breakpoints: {
-            640: {
-                slidesPerView: 2,
+    // Check if Swiper is available
+    if (typeof Swiper === 'undefined') {
+        console.error('Swiper library not loaded!');
+        return;
+    }
+    
+    // Initialize Swiper immediately
+    try {
+        const swiperElement = container.querySelector(`.${swiperClass}`);
+        console.log(`Initializing swiper for ${swiperClass}, element found:`, swiperElement);
+        
+        if (!swiperElement) {
+            console.error(`Swiper element .${swiperClass} not found in container`);
+            return;
+        }
+        
+        const swiper = new Swiper(swiperElement, {
+            slidesPerView: 1,
+            spaceBetween: 20,
+            loop: false,
+            navigation: {
+                nextEl: swiperElement.querySelector('.swiper-button-next'),
+                prevEl: swiperElement.querySelector('.swiper-button-prev'),
             },
-            768: {
-                slidesPerView: 3,
+            pagination: {
+                el: swiperElement.querySelector('.swiper-pagination'),
+                clickable: true,
             },
-            1024: {
-                slidesPerView: 4,
+            breakpoints: {
+                640: {
+                    slidesPerView: 2,
+                },
+                768: {
+                    slidesPerView: 3,
+                },
+                1024: {
+                    slidesPerView: 4,
+                },
+                1280: {
+                    slidesPerView: 5,
+                },
             },
-        },
-    });
+        });
+        console.log(`Swiper initialized successfully for ${swiperClass}:`, swiper);
+    } catch (error) {
+        console.error(`Error initializing swiper for ${swiperClass}:`, error);
+    }
 }
 
 // Add to cart function

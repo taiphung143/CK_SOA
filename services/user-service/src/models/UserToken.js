@@ -3,9 +3,14 @@ const sequelize = require('../config/database');
 const User = require('./User');
 
 const UserToken = sequelize.define('UserToken', {
-  user_id: {
+  id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
+    autoIncrement: true,
+    allowNull: false
+  },
+  user_id: {
+    type: DataTypes.INTEGER,
     allowNull: false,
     references: {
       model: 'users',
@@ -15,6 +20,11 @@ const UserToken = sequelize.define('UserToken', {
   token: {
     type: DataTypes.STRING(255),
     allowNull: false
+  },
+  type: {
+    type: DataTypes.ENUM('verification', 'password_reset'),
+    allowNull: false,
+    defaultValue: 'verification'
   },
   is_used: {
     type: DataTypes.BOOLEAN,

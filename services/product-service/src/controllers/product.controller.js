@@ -17,7 +17,7 @@ class ProductController {
       } = req.query;
 
       const offset = (page - 1) * limit;
-      const whereClause = { is_active: true };
+      const whereClause = { active: true };
 
       if (category_id) whereClause.category_id = category_id;
       if (is_featured) whereClause.is_featured = true;
@@ -47,7 +47,7 @@ class ProductController {
           { 
             model: ProductSKU, 
             as: 'skus',
-            where: { is_available: true },
+            where: { stock: { [Op.gt]: 0 } },
             required: false
           }
         ],
@@ -79,7 +79,7 @@ class ProductController {
       const { id } = req.params;
 
       const product = await Product.findOne({
-        where: { id, is_active: true },
+        where: { id, active: true },
         include: [
           { 
             model: Category, 
@@ -122,7 +122,7 @@ class ProductController {
       const { slug } = req.params;
 
       const product = await Product.findOne({
-        where: { slug, is_active: true },
+        where: { slug, active: true },
         include: [
           { 
             model: Category, 
@@ -255,7 +255,7 @@ class ProductController {
       }
 
       // Soft delete
-      await product.update({ is_active: false });
+      await product.update({ active: false });
 
       res.json({
         success: true,
@@ -326,6 +326,21 @@ class ProductController {
           sku_id: sku.id,
           stock_quantity: sku.stock_quantity
         }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getStats(req, res, next) {
+    try {
+      const total = await Product.count({
+        where: { active: true }
+      });
+      
+      res.json({
+        success: true,
+        total: total
       });
     } catch (error) {
       next(error);

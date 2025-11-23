@@ -41,21 +41,24 @@ INSERT INTO users (id, avatar, name, username, email, password, birth, phone_num
 
 -- User tokens table
 CREATE TABLE IF NOT EXISTS user_tokens (
-    user_id INT NOT NULL PRIMARY KEY,
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
     token VARCHAR(255) NOT NULL UNIQUE,
+    type ENUM('verification', 'password_reset') NOT NULL DEFAULT 'verification',
     is_used TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP NULL DEFAULT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_token (token)
+    INDEX idx_token (token),
+    INDEX idx_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Insert user tokens
-INSERT INTO user_tokens (user_id, token, is_used, created_at, expires_at) VALUES
-(1, '8284b8a2b61cc5e3c7124bb8c86ff94e', 1, '2025-04-17 17:39:12', '2025-04-18 17:39:12'),
-(7, '445eaa81e06d9b297e4978ac89dba60d', 1, '2025-04-20 12:56:17', '2025-04-21 12:56:17'),
-(16, '023e8a8bd7cdf80c3fc4f51dcf038e91', 0, '2025-05-24 14:23:56', '2025-05-25 14:23:56'),
-(19, '20e3c5e74a0c70b0c417b54dc2242a48', 1, '2025-05-26 15:51:26', '2025-05-27 15:51:26');
+INSERT INTO user_tokens (user_id, token, type, is_used, created_at, expires_at) VALUES
+(1, '8284b8a2b61cc5e3c7124bb8c86ff94e', 'verification', 1, '2025-04-17 17:39:12', '2025-04-18 17:39:12'),
+(7, '445eaa81e06d9b297e4978ac89dba60d', 'verification', 1, '2025-04-20 12:56:17', '2025-04-21 12:56:17'),
+(16, '023e8a8bd7cdf80c3fc4f51dcf038e91', 'verification', 0, '2025-05-24 14:23:56', '2025-05-25 14:23:56'),
+(19, '20e3c5e74a0c70b0c417b54dc2242a48', 'verification', 1, '2025-05-26 15:51:26', '2025-05-27 15:51:26');
 
 -- Addresses table
 CREATE TABLE IF NOT EXISTS addresses (
@@ -122,6 +125,7 @@ USE product_db;
 CREATE TABLE IF NOT EXISTS categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
+    slug VARCHAR(100) UNIQUE NOT NULL,
     description TEXT DEFAULT NULL,
     image VARCHAR(255) DEFAULT NULL,
     active TINYINT(1) DEFAULT 1,
@@ -130,17 +134,17 @@ CREATE TABLE IF NOT EXISTS categories (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Insert categories
-INSERT INTO categories (id, name, description, image, active, created_at, updated_at) VALUES
-(1, 'Electronics', 'Smartphones, laptops, and tech gadgets', 'https://down-vn.img.susercontent.com/file/978b9e4cb61c611aaaf58664fae133c5@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:04:09'),
-(2, 'Fashion', 'Clothing, shoes, and accessories for all', 'https://down-vn.img.susercontent.com/file/75ea42f9eca124e9cb3cde744c060e4d@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:04:27'),
-(3, 'Home & Living', 'Furniture, decor, kitchen & more', 'https://down-vn.img.susercontent.com/file/24b194a695ea59d384768b7b471d563f@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:06:07'),
-(4, 'Beauty & Personal Care', 'Cosmetics, skincare, grooming', 'https://down-vn.img.susercontent.com/file/ef1f336ecc6f97b790d5aae9916dcb72@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:03:06'),
-(5, 'Sports & Outdoors', 'Fitness equipment, outdoor gear', 'https://down-vn.img.susercontent.com/file/6cb7e633f8b63757463b676bd19a50e4@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:06:20'),
-(6, 'Toys & Games', 'Toys for kids, board games & hobbies', 'https://down-vn.img.susercontent.com/file/ce8f8abc726cafff671d0e5311caa684@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:06:00'),
-(7, 'Books & Stationery', 'Books, journals, school & office supplies', 'https://down-vn.img.susercontent.com/file/36013311815c55d303b0e6c62d6a8139@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:03:14'),
-(8, 'Automotive', 'Car accessories, tools, and parts', 'https://down-vn.img.susercontent.com/file/3fb459e3449905545701b418e8220334@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:00:39'),
-(9, 'Groceries', 'Food, beverages, and daily essentials', 'https://down-vn.img.susercontent.com/file/c432168ee788f903f1ea024487f2c889@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:04:37'),
-(10, 'Pet Supplies', 'Pet food, toys, grooming & more', 'https://down-vn.img.susercontent.com/file/cdf21b1bf4bfff257efe29054ecea1ec@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:06:15');
+INSERT INTO categories (id, name, slug, description, image, active, created_at, updated_at) VALUES
+(1, 'Electronics', 'electronics', 'Smartphones, laptops, and tech gadgets', 'https://down-vn.img.susercontent.com/file/978b9e4cb61c611aaaf58664fae133c5@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:04:09'),
+(2, 'Fashion', 'fashion', 'Clothing, shoes, and accessories for all', 'https://down-vn.img.susercontent.com/file/75ea42f9eca124e9cb3cde744c060e4d@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:04:27'),
+(3, 'Home & Living', 'home-living', 'Furniture, decor, kitchen & more', 'https://down-vn.img.susercontent.com/file/24b194a695ea59d384768b7b471d563f@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:06:07'),
+(4, 'Beauty & Personal Care', 'beauty-personal-care', 'Cosmetics, skincare, grooming', 'https://down-vn.img.susercontent.com/file/ef1f336ecc6f97b790d5aae9916dcb72@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:03:06'),
+(5, 'Sports & Outdoors', 'sports-outdoors', 'Fitness equipment, outdoor gear', 'https://down-vn.img.susercontent.com/file/6cb7e633f8b63757463b676bd19a50e4@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:06:20'),
+(6, 'Toys & Games', 'toys-games', 'Toys for kids, board games & hobbies', 'https://down-vn.img.susercontent.com/file/ce8f8abc726cafff671d0e5311caa684@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:06:00'),
+(7, 'Books & Stationery', 'books-stationery', 'Books, journals, school & office supplies', 'https://down-vn.img.susercontent.com/file/36013311815c55d303b0e6c62d6a8139@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:03:14'),
+(8, 'Automotive', 'automotive', 'Car accessories, tools, and parts', 'https://down-vn.img.susercontent.com/file/3fb459e3449905545701b418e8220334@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:00:39'),
+(9, 'Groceries', 'groceries', 'Food, beverages, and daily essentials', 'https://down-vn.img.susercontent.com/file/c432168ee788f903f1ea024487f2c889@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:04:37'),
+(10, 'Pet Supplies', 'pet-supplies', 'Pet food, toys, grooming & more', 'https://down-vn.img.susercontent.com/file/cdf21b1bf4bfff257efe29054ecea1ec@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:06:15');
 
 -- Sub-categories table
 CREATE TABLE IF NOT EXISTS sub_categories (

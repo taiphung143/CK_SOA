@@ -1,7 +1,7 @@
 const API_BASE_URL = 'http://localhost:3000/api';
 
 function getAuthToken() {
-    return localStorage.getItem('token') || sessionStorage.getItem('token');
+    return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
 }
 
 // Load all orders

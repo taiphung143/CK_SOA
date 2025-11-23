@@ -20,6 +20,7 @@ router.post('/change-password', validate(changePasswordSchema), userController.c
 router.delete('/account', userController.deleteAccount);
 
 // Admin only routes
+router.get('/stats', isAdmin, userController.getStats);
 router.get('/', isAdmin, userController.getAllUsers);
 
 module.exports = router;

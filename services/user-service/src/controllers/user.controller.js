@@ -154,6 +154,19 @@ class UserController {
       next(error);
     }
   }
+
+  async getStats(req, res, next) {
+    try {
+      const total = await User.count();
+      
+      res.json({
+        success: true,
+        total: total
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new UserController();

@@ -19,8 +19,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
+app.use('/api/products', categoryRoutes);
 app.use('/api/products', productRoutes);
-app.use('/api/categories', categoryRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

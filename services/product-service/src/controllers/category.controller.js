@@ -1,4 +1,4 @@
-const { Category, Product } = require('../models');
+const { Category, Product, SubCategory } = require('../models');
 
 class CategoryController {
   async getAllCategories(req, res, next) {
@@ -10,19 +10,19 @@ class CategoryController {
         includeOptions.push({
           model: Product,
           as: 'products',
-          where: { is_active: true },
+          where: { active: true },
           required: false
         });
       }
 
       const categories = await Category.findAll({
-        where: { is_active: true },
+        where: { active: true },
         include: [
           ...includeOptions,
           {
-            model: Category,
+            model: SubCategory,
             as: 'subcategories',
-            where: { is_active: true },
+            where: { active: true },
             required: false
           }
         ],
@@ -43,17 +43,13 @@ class CategoryController {
       const { id } = req.params;
 
       const category = await Category.findOne({
-        where: { id, is_active: true },
+        where: { id, active: true },
         include: [
           {
-            model: Category,
+            model: SubCategory,
             as: 'subcategories',
-            where: { is_active: true },
+            where: { active: true },
             required: false
-          },
-          {
-            model: Category,
-            as: 'parent'
           }
         ]
       });
@@ -79,12 +75,12 @@ class CategoryController {
       const { slug } = req.params;
 
       const category = await Category.findOne({
-        where: { slug, is_active: true },
+        where: { slug, active: true },
         include: [
           {
-            model: Category,
+            model: SubCategory,
             as: 'subcategories',
-            where: { is_active: true },
+            where: { active: true },
             required: false
           }
         ]
@@ -178,7 +174,7 @@ class CategoryController {
       }
 
       // Soft delete
-      await category.update({ is_active: false });
+      await category.update({ active: false });
 
       res.json({
         success: true,
