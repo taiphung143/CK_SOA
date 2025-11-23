@@ -1,6 +1,6 @@
 // Contact.js - Handle contact form submission
 
-const API_BASE_URL = 'http://localhost:3000/api'; // API Gateway URL
+const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000/api'; // API Gateway URL
 
 // Initialize contact page
 document.addEventListener('DOMContentLoaded', () => {

@@ -1,6 +1,6 @@
 // Cart.js - Handle shopping cart functionality
 
-const API_BASE_URL = 'http://localhost:3000/api'; // API Gateway URL
+const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000/api'; // API Gateway URL
 
 // Initialize cart page
 document.addEventListener('DOMContentLoaded', () => {

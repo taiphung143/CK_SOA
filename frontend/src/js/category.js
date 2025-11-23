@@ -1,6 +1,6 @@
 // Category.js - Handle category page with filters and product listing
 
-const API_BASE_URL = 'http://localhost:3000/api'; // API Gateway URL
+const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000/api'; // API Gateway URL
 
 let currentPage = 1;
 let currentFilters = {

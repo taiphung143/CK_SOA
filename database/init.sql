@@ -264,7 +264,7 @@ CREATE TABLE IF NOT EXISTS product_discounts (
 -- Insert product discounts
 INSERT INTO product_discounts (id, product_id, discount_percent, start_at, end_at, created_at, updated_at) VALUES
 (1, 1, 50, '2025-04-27 00:46:20', '2025-05-27 12:46:20', '2025-04-27 05:46:36', '2025-05-26 15:37:00'),
-(2, 15, 50, '2025-05-09 14:31:11', '2025-05-11 14:31:11', '2025-05-10 07:31:33', '2025-05-10 07:31:33');
+(2, 2, 50, '2025-05-09 14:31:11', '2025-05-11 14:31:11', '2025-05-10 07:31:33', '2025-05-10 07:31:33');
 
 -- Recently viewed products
 CREATE TABLE IF NOT EXISTS recently_viewed (

@@ -1,6 +1,6 @@
 // Home.js - Load dynamic content for home page
 
-const API_BASE_URL = 'http://localhost:3000/api'; // API Gateway URL
+const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000/api'; // API Gateway URL
 
 // Initialize home page
 document.addEventListener('DOMContentLoaded', () => {

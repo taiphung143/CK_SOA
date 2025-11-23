@@ -1,6 +1,6 @@
 // Login.js - Handle user authentication
 
-const API_BASE_URL = 'http://localhost:3000/api'; // API Gateway URL
+const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000/api'; // API Gateway URL
 
 // Initialize login page
 document.addEventListener('DOMContentLoaded', () => {
@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('authToken');
     if (token) {
         // Redirect to home or profile
-        window.location.href = 'home.html';
+        window.location.href = '/';
     }
 });
 
@@ -50,17 +50,16 @@ function initializeLoginForm() {
 async function handleLoginSubmit(e) {
     e.preventDefault();
     
-    const messageDiv = document.getElementById('login-message');
+    const errorDiv = document.getElementById('error-message');
     const submitButton = e.target.querySelector('button[type="submit"]');
     
     // Get form data
-    const username = document.getElementById('username').value.trim();
+    const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
-    const rememberMe = document.getElementById('remember-me')?.checked || false;
 
     // Validate inputs
-    if (!username || !password) {
-        showMessage(messageDiv, 'Please enter both username and password!', 'error');
+    if (!email || !password) {
+        showError('Please enter both email and password!');
         return;
     }
 
@@ -75,7 +74,7 @@ async function handleLoginSubmit(e) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                username: username,
+                email: email,
                 password: password
             })
         });
@@ -83,34 +82,31 @@ async function handleLoginSubmit(e) {
         const data = await response.json();
 
         if (response.ok) {
-            // Save token
-            if (rememberMe) {
-                localStorage.setItem('authToken', data.token);
-                localStorage.setItem('userData', JSON.stringify(data.user));
-            } else {
-                sessionStorage.setItem('authToken', data.token);
-                sessionStorage.setItem('userData', JSON.stringify(data.user));
-            }
+            // Save token and user data (API returns data.data)
+            const responseData = data.data || data;
+            localStorage.setItem('authToken', responseData.token);
+            localStorage.setItem('userData', JSON.stringify(responseData.user));
 
-            showMessage(messageDiv, 'Login successful! Redirecting...', 'success');
+            hideError();
+            showSuccess('Login successful! Redirecting...');
             
             // Redirect based on role
             setTimeout(() => {
-                if (data.user.role === 'admin') {
-                    window.location.href = '../view_admin/dashboard.html';
+                if (responseData.user && responseData.user.role === 'admin') {
+                    window.location.href = '/view_admin/dashboard.html';
                 } else {
-                    window.location.href = 'home.html';
+                    window.location.href = '/';
                 }
             }, 1000);
         } else {
-            const errorMessage = data.message || data.error || 'Invalid username or password!';
-            showMessage(messageDiv, errorMessage, 'error');
+            const errorMessage = data.message || data.error || 'Invalid email or password!';
+            showError(errorMessage);
             submitButton.disabled = false;
             submitButton.textContent = 'Login';
         }
     } catch (error) {
         console.error('Login error:', error);
-        showMessage(messageDiv, 'Network error. Please check your connection and try again.', 'error');
+        showError('Network error. Please check your connection and try again.');
         submitButton.disabled = false;
         submitButton.textContent = 'Login';
     }
@@ -213,5 +209,30 @@ function showMessage(element, message, type) {
         element.style.backgroundColor = '#f8d7da';
         element.style.color = '#721c24';
         element.style.border = '1px solid #f5c6cb';
+    }
+}
+
+// Helper functions for error display
+function showError(message) {
+    const errorDiv = document.getElementById('error-message');
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+    }
+}
+
+function hideError() {
+    const errorDiv = document.getElementById('error-message');
+    if (errorDiv) {
+        errorDiv.style.display = 'none';
+    }
+}
+
+function showSuccess(message) {
+    const errorDiv = document.getElementById('error-message');
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        errorDiv.style.color = 'green';
     }
 }
