@@ -5,10 +5,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# # Environment variables
-# .env
-# .env.local
-# .env.*.local
+# Environment variables
+.env
+.env.local
+.env.*.local
 
 # IDE
 .vscode/
@@ -29,22 +29,22 @@ logs/
 dist/
 build/
 
-# # Database
-# *.sql
-# *.sqlite
-# *.db
+# Database
+*.sql
+*.sqlite
+*.db
 
-# # Uploads
-# uploads/
-# public/images/products/*
-# public/images/cart/*
-# public/images/categories/*
-# !public/images/products/.gitkeep
-# !public/images/cart/.gitkeep
-# !public/images/categories/.gitkeep
+# Uploads
+uploads/
+public/images/products/*
+public/images/cart/*
+public/images/categories/*
+!public/images/products/.gitkeep
+!public/images/cart/.gitkeep
+!public/images/categories/.gitkeep
 
-# # Docker
-# docker-compose.override.yml
+# Docker
+docker-compose.override.yml
 
 # Testing
 coverage/
