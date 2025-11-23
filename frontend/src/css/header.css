@@ -1,0 +1,475 @@
+/* Top Notification Bar */
+.top-notification {
+    background-color: #4B3EC4;
+    color: #FFFFFF;
+    padding: 10px 0;
+    text-align: center;
+}
+
+.top-notification .container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.special-badge {
+    background-color: #FFFFFF;
+    color: #000000;
+    font-weight: 700;
+    font-size: 12px;
+    padding: 2px 10px;
+    border-radius: 800px;
+    text-transform: uppercase;
+}
+
+.discount-text {
+    font-size: 14px;
+}
+
+.register-link {
+    font-size: 14px;
+    font-weight: 400;
+    text-decoration: underline;
+}
+
+/* Top Navigation Bar */
+.top-navbar {
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #F8F8F8;
+    border-bottom: 1px solid rgba(153, 153, 153, 0.2);
+}
+
+.top-navbar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.left-links, .right-links {
+    display: flex;
+    gap: 20px;
+}
+
+.nav-link {
+    font-size: 14px;
+    color: #000000;
+}
+
+.nav-link i {
+    margin-right: 5px;
+}
+
+/* Categories Navigation */
+.categories-navbar {
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #E9E7E8;
+    border-bottom: 1px solid rgba(153, 153, 153, 0.2);
+}
+
+.categories-navbar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.mobile-menu-toggle {
+    display: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #4B3EC4;
+}
+
+.categories-button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background-color: #F8F8F8;
+    padding: 8px 15px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 500;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(153, 153, 153, 0.2);
+}
+
+.nav-links {
+    display: flex;
+    gap: 20px;
+}
+
+.nav-links .nav-link {
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.language-currency {
+    display: flex;
+    gap: 15px;
+}
+
+.currency-selector, .language-selector {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    color: #362526;
+    border-left: 1px solid rgba(153, 153, 153, 0.2);
+    padding-left: 15px;
+}
+
+.language-selector i.fas.fa-flag {
+    color: #4B3EC4;
+    margin-right: 5px;
+}
+
+/* Main Navigation Bar */
+.main-navbar {
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #F8F8F8;
+    padding: 15px 0;
+    border-bottom: 1px solid rgba(153, 153, 153, 0.2);
+}
+
+.main-navbar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.logo {
+    display: flex;
+    height: 76px;
+    width: 202px;
+    align-items: center;
+    justify-content: center;
+    border-right: #000000;
+    margin: -15px 0px;
+}
+
+.logo img {
+    height: 64px;
+    width: 125.17px;
+}
+
+.hotline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.icon-circle {
+    width: 45px;
+    height: 45px;
+    background-color: #4B3EC4;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #FFFFFF;
+    font-size: 18px;
+}
+
+.hotline-text small {
+    font-size: 12px;
+    color: #000000;
+}
+
+.hotline-text h6 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #000000;
+}
+
+.color-indicators {
+    display: flex;
+    gap: 5px;
+}
+
+.color-dot {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+}
+
+.color-dot.yellow {
+    background-color: #FFEBD0;
+}
+
+.color-dot.yellow::after {
+    content: "";
+    display: block;
+    width: 5px;
+    height: 5px;
+    background-color: #F6AB4A;
+    border-radius: 50%;
+    margin: 5px auto;
+}
+
+.color-dot.purple {
+    background-color: #A39FFF;
+}
+
+.color-dot.purple::after {
+    content: "";
+    display: block;
+    width: 5px;
+    height: 5px;
+    background-color: #4B3EC4;
+    border-radius: 50%;
+    margin: 5px auto;
+}
+
+.icons {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 18px;
+    position: relative;
+}
+
+.cart{
+    position: relative;
+    cursor: pointer;
+}
+.cart-count {
+    position: absolute;
+    top: -5px;
+    right: -10px;
+    background-color: #4B3EC4;
+    color: #FFFFFF;
+    font-size: 11px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 30px;
+    overflow: hidden;
+    width: 300px;
+    height: 40px;
+    justify-content: space-between;
+    /* F8F8F8 */
+}
+
+.input{
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 13px;
+    background-color: #F8F8F8;
+    margin-left: 10px;
+    /* F8F8F8 */
+}
+
+.search-bar input::placeholder {
+    color: #999999;
+}
+
+.search-button {
+    background-color: #4B3EC4;
+    color: #FFFFFF;
+    border: none;
+    width: 37px;
+    height: 37px;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.message-icon {
+    font-size: 18px;
+    margin-left: 15px;
+}
+
+.logo-text {
+    font-size: 32px;
+    font-weight: 700;
+    color: #4B3EC4;
+    text-align: center;
+    margin: 0;
+}
+
+/* Responsive Styles */
+/* Responsive styles for header */
+/* @media (min-width: 576px) {
+    .top-navbar,
+    .main-navbar,
+    .categories-navbar {
+        max-width: 540px;
+    }
+}
+@media (min-width: 768px) {
+    .top-navbar,
+    .main-navbar,
+    .categories-navbar {
+        max-width: 720px;
+    }
+}
+@media (min-width: 992px) {
+    .top-navbar,
+    .main-navbar,
+    .categories-navbar {
+        max-width: 960px;
+    }
+}
+@media (min-width: 1200px) {
+    .top-navbar,
+    .main-navbar,
+    .categories-navbar {
+        max-width: 1140px;
+    }
+}
+@media (min-width: 1400px) {
+    .top-navbar,
+    .main-navbar,
+    .categories-navbar {
+        max-width: 1320px;
+    }
+} */
+/* Large devices (desktops, less than 1200px) */
+@media (max-width: 1199.98px) {
+    .container {
+        max-width: 960px;
+    }
+}
+
+/* Medium devices (tablets, less than 992px) */
+@media (max-width: 991.98px) {
+    .container {
+        max-width: 720px;
+    }
+    
+    .top-navbar-content,
+    .main-navbar-content,
+    .categories-navbar-content {
+        flex-wrap: wrap;
+    }
+    
+    .center-text {
+        order: -1;
+        width: 100%;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    
+    .search-bar {
+        width: 100%;
+        margin: 10px 0;
+    }
+    .hotline {
+        display: none;
+    }
+}
+
+/* Small devices (landscape phones, less than 768px) */
+@media (max-width: 767.98px) {
+    .container {
+        max-width: 540px;
+    }
+    
+    .top-notification .container {
+        flex-direction: column;
+    }
+    
+    .left-links, .right-links {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .hotline {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+    
+    .color-indicators {
+        display: none;
+    }
+    
+    .icons {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+    
+    .message-icon {
+        display: none;
+    }
+    
+    .login-side-image {
+        display: none;
+    }
+
+    /* Mobile menu styles */
+    .mobile-menu-toggle {
+        display: block;
+        order: -1;
+    }
+    
+    .categories-button {
+        display: none;
+    }
+    
+    .nav-links {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        margin: 10px 0;
+    }
+    
+    .nav-links.active {
+        display: flex;
+    }
+    
+    .nav-links .nav-link {
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(153, 153, 153, 0.2);
+    }
+    
+    .language-currency {
+        display: none;
+    }
+}
+
+/* Extra small devices (portrait phones, less than 576px) */
+@media (max-width: 575.98px) {
+    .container {
+        max-width: 540px;
+        padding: 0 10px;
+    }
+    
+    .top-notification {
+        padding: 5px 0;
+    }
+    
+    .special-badge {
+        font-size: 10px;
+    }
+    
+    .discount-text, .register-link {
+        font-size: 12px;
+    }
+    
+    .nav-link {
+        font-size: 12px;
+    }
+    
+    .categories-button {
+        font-size: 12px;
+        padding: 5px 10px;
+    }
+}

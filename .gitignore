@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+package-lock.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Build
+dist/
+build/
+
+# Database
+*.sql
+*.sqlite
+*.db
+
+# Uploads
+uploads/
+public/images/products/*
+public/images/cart/*
+public/images/categories/*
+!public/images/products/.gitkeep
+!public/images/cart/.gitkeep
+!public/images/categories/.gitkeep
+
+# Docker
+docker-compose.override.yml
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/

@@ -1,0 +1,64 @@
+/* Checkout discount styles */
+
+/* Cart items discount styling */
+.cart-item.has-discount {
+    position: relative;
+}
+
+.item-price.discount {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.item-price .discounted-price,
+.item-subtotal .discounted-price,
+.discount-amount,
+.discounted-price {
+    color: #f44336;
+    font-weight: bold;
+}
+
+.item-price .original-price,
+.item-subtotal .original-price,
+.original-price {
+    color: #999;
+    text-decoration: line-through;
+    font-size: 0.85em;
+    font-weight: normal;
+}
+
+.item-price .discount-badge {
+    position: absolute;
+    right: -5px;
+    top: -5px;
+    background-color: #f44336;
+    color: white;
+    font-size: 10px;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+.item-subtotal.discount {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+/* Order summary discount styling */
+.total-row.discount-row {
+    color: #f44336;
+    font-weight: bold;
+}
+
+/* Animation for discount badge */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.discount-badge {
+    animation: pulse 2s infinite ease-in-out;
+}

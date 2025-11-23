@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop365 - Logging out...</title>
+    <link rel="icon" href="../images/logo.ico" type="image/vnd.microsoft.icon" />
+</head>
+<body>
+    <div style="text-align: center; padding: 100px 20px;">
+        <h2>Logging out...</h2>
+        <p>Please wait while we log you out.</p>
+    </div>
+
+    <script>
+        // Perform logout
+        fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(() => {
+            // Clear local storage
+            localStorage.clear();
+            sessionStorage.clear();
+            // Redirect to home
+            window.location.href = 'home.html';
+        })
+        .catch(err => {
+            console.error('Logout error:', err);
+            // Redirect anyway
+            window.location.href = 'home.html';
+        });
+    </script>
+</body>
+</html>

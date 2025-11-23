@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop365 - Register</title>
+    <link rel="icon" href="../images/logo.ico" type="image/vnd.microsoft.icon" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/globals.css">
+    <link rel="stylesheet" href="../css/header.css">
+    <link rel="stylesheet" href="../css/register.css">
+    <link rel="stylesheet" href="../css/footer.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <div id="header-container"></div>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Breadcrumb -->
+            <div class="breadcrumb">
+                <a href="home.html">Home</a>
+                <span>/</span>
+                <span class="current">Register</span>
+            </div>
+
+            <!-- Register Section Wrapper -->
+            <div class="login-wrapper">
+                <!-- Image on the Left -->
+                <div class="login-side-image">
+                    <img src="images/login.svg.png" alt="Login Image">
+                </div>  
+
+                <!-- Register Form -->
+                <div class="login-form-container">
+                    <div class="login-image">
+                        <i class="fas fa-user-circle fa-5x"></i>
+                    </div>
+                    <h3>Register</h3>
+                    <p class="login-subtitle">JOIN TO US</p>
+
+                    <div id="register-message" style="display: none; text-align:center; margin-bottom: 15px;"></div>
+
+                    <form class="login-form" id="register-form">
+                        <div class="form-group">
+                            <label for="name">Your Name</label>
+                            <input type="text" id="name" name="name" placeholder="Nguyen Van A" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" name="username" placeholder="username123" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" placeholder="Example@gmail.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password" placeholder="...." required>
+                            <i class="fas fa-eye-slash password-toggle" data-target="password"></i>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm-password">Confirm Password</label>
+                            <input type="password" id="confirm-password" name="confirm_password" placeholder="...." required>
+                            <i class="fas fa-eye-slash password-toggle" data-target="confirm-password"></i>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="login-button">Register</button>
+                        </div>
+                        <div class="signup-link">
+                            <span>Already user? <a href="login.html">Login</a></span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <div id="footer-container"></div>
+
+    <script src="js/header.js"></script>
+    <script src="js/register.js"></script>
+    <script>
+        // Load header and footer
+        fetch('header.html').then(r => r.text()).then(html => {
+            document.getElementById('header-container').innerHTML = html;
+        });
+        fetch('footer.html').then(r => r.text()).then(html => {
+            document.getElementById('footer-container').innerHTML = html;
+        });
+    </script>
+</body>
+</html>

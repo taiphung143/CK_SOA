@@ -1,0 +1,88 @@
+/* Cart Discount Styles */
+
+/* Price with discount styles */
+.price.discount {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.price .current-price,
+.price .discounted-price {
+    color: #f44336;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.price .original-price {
+    color: #999;
+    text-decoration: line-through;
+    font-size: 13px;
+    margin-top: 2px;
+    font-weight: normal;
+}
+
+.price .discount-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #f44336;
+    color: white;
+    font-size: 11px;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+/* Item total with discount styles */
+.item-total.discount {
+    display: flex;
+    flex-direction: column;
+    margin-top: 8px;
+}
+
+.item-total .current-total,
+.item-total .discounted-price {
+    color: #f44336;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.item-total .original-total {
+    color: #999;
+    text-decoration: line-through;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+/* Cart summary with discount styles */
+.card-item .original-price {
+    color: #999;
+    text-decoration: line-through;
+    font-size: 14px;
+}
+
+.card-item .discounted-price {
+    color: #f44336;
+}
+
+.card-item.discount-amount {
+    color: #f44336;
+    font-weight: bold;
+}
+
+.card-item.discount-amount .discount-value {
+    color: #f44336;
+    font-weight: bold;
+}
+
+/* Add animation for discount badge */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.discount-badge {
+    animation: pulse 2s infinite ease-in-out;
+}

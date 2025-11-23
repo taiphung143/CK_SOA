@@ -1,0 +1,257 @@
+/* Main Content */
+main {
+    padding: 30px 0;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    background-color: #FFFFFF;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 5px;
+}
+
+.breadcrumb a {
+    color: #999999;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.breadcrumb span {
+    color: #6C757D;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.breadcrumb .current {
+    color: #000000;
+}
+
+.error-message {
+    transition: opacity 0.5s ease;
+    opacity: 1;
+}
+
+.error-message.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.login-form-container {
+    background-color: #FFFFFF;
+    padding: 40px;
+    border-radius: 10px;
+    flex: 1;
+    min-width: 350px;
+    max-width: 600px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+    max-width: 1200px;
+    margin: 50px auto;
+    padding: 20px;
+}
+
+.login-side-image {
+    flex: 1;
+}
+
+.login-side-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+
+.login-image {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.login-image i {
+    font-size: 80px;
+    color: #4B3EC4;
+}
+
+.login-form-container h3 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #4B3EC4;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.login-subtitle {
+    font-size: 14px;
+    color: #999999;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 30px;
+}
+
+.login-form .form-group {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.login-form label {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.login-form input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #CCCCCC;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.login-form input::placeholder {
+    color: #999999;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    bottom: 15px;
+    color: #000000;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.forgot-password {
+    font-size: 13px;
+    color: #999999;
+}
+
+.login-button {
+    background-color: #4B3EC4;
+    color: #FFFFFF;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.signup-link {
+    text-align: center;
+    font-size: 13px;
+    color: #999999;
+    text-transform: uppercase;
+}
+
+.signup-link a {
+    color: #999999;
+    text-decoration: underline;
+}
+
+/* Responsive Styles */
+/* Large devices (desktops, less than 1200px) */
+@media (max-width: 1199.98px) {
+    .container {
+        max-width: 960px;
+    }
+}
+
+/* Medium devices (tablets, less than 992px) */
+@media (max-width: 991.98px) {
+    .container {
+        max-width: 720px;
+    }
+}
+
+/* Small devices (landscape phones, less than 768px) */
+@media (max-width: 767.98px) {
+    .container {
+        max-width: 540px;
+    }
+
+    .login-side-image {
+        display: none;
+    }
+
+    /* Mobile menu styles */
+    .mobile-menu-toggle {
+        display: block;
+        order: -1;
+    }
+    
+    .categories-button {
+        display: none;
+    }
+    
+    .nav-links {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        margin: 10px 0;
+    }
+    
+    .nav-links.active {
+        display: flex;
+    }
+    
+    .nav-links .nav-link {
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(153, 153, 153, 0.2);
+    }
+    
+    .language-currency {
+        width: 100%;
+        justify-content: center;
+        margin-top: 10px;
+    }
+    
+    .login-form-container {
+        padding: 20px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .forgot-password {
+        align-self: flex-start;
+    }
+    
+    .login-button {
+        width: 100%;
+    }
+}
+
+/* Extra small devices (portrait phones, less than 576px) */
+@media (max-width: 575.98px) {
+    .container {
+        padding: 0 10px;
+    }
+       
+    .login-form-container h3 {
+        font-size: 24px;
+    }
+    
+    .login-subtitle {
+        font-size: 12px;
+    }
+}

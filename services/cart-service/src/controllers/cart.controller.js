@@ -1,0 +1,271 @@
+const { Cart, CartItem } = require('../models');
+const axios = require('axios');
+
+const PRODUCT_SERVICE_URL = process.env.PRODUCT_SERVICE_URL || 'http://product-service:3002';
+
+class CartController {
+  async getCart(req, res, next) {
+    try {
+      const userId = req.user?.userId || req.headers['x-user-id'];
+
+      let cart = await Cart.findOne({
+        where: { user_id: userId },
+        include: [{ model: CartItem, as: 'items' }]
+      });
+
+      if (!cart) {
+        cart = await Cart.create({ user_id: userId });
+      }
+
+      // Fetch product details from Product Service
+      if (cart.items && cart.items.length > 0) {
+        const productIds = cart.items.map(item => item.product_id);
+        const skuIds = cart.items.map(item => item.sku_id);
+
+        try {
+          // In production, make batch request to product service
+          const items = await Promise.all(cart.items.map(async (item) => {
+            // Simplified: In production, use proper batch API
+            return {
+              ...item.toJSON(),
+              // Product details would be fetched here
+            };
+          }));
+
+          cart = cart.toJSON();
+          cart.items = items;
+        } catch (error) {
+          console.error('Error fetching product details:', error);
+        }
+      }
+
+      // Calculate totals
+      const subtotal = cart.items?.reduce((sum, item) => 
+        sum + (parseFloat(item.price) * item.quantity), 0) || 0;
+      const discount = parseFloat(cart.discount_amount) || 0;
+      const total = subtotal - discount;
+
+      res.json({
+        success: true,
+        data: {
+          ...cart,
+          subtotal,
+          discount,
+          total
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async addToCart(req, res, next) {
+    try {
+      const userId = req.user?.userId || req.headers['x-user-id'];
+      const { product_id, sku_id, quantity = 1 } = req.body;
+
+      // Verify product and SKU exist and get price
+      try {
+        const skuResponse = await axios.get(
+          `${PRODUCT_SERVICE_URL}/api/products/sku/${sku_id}/stock`
+        );
+        
+        if (!skuResponse.data.data.is_available) {
+          return res.status(400).json({
+            success: false,
+            message: 'Product is out of stock'
+          });
+        }
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid product or SKU'
+        });
+      }
+
+      // Get product details for price
+      const productResponse = await axios.get(
+        `${PRODUCT_SERVICE_URL}/api/products/${product_id}`
+      );
+      const price = productResponse.data.data.base_price;
+
+      // Find or create cart
+      let cart = await Cart.findOne({ where: { user_id: userId } });
+      if (!cart) {
+        cart = await Cart.create({ user_id: userId });
+      }
+
+      // Check if item already exists in cart
+      let cartItem = await CartItem.findOne({
+        where: { 
+          cart_id: cart.id, 
+          product_id, 
+          sku_id 
+        }
+      });
+
+      if (cartItem) {
+        // Update quantity
+        await cartItem.update({ 
+          quantity: cartItem.quantity + parseInt(quantity) 
+        });
+      } else {
+        // Add new item
+        cartItem = await CartItem.create({
+          cart_id: cart.id,
+          product_id,
+          sku_id,
+          quantity: parseInt(quantity),
+          price
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Item added to cart',
+        data: cartItem
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateCartItem(req, res, next) {
+    try {
+      const userId = req.user?.userId || req.headers['x-user-id'];
+      const { item_id } = req.params;
+      const { quantity } = req.body;
+
+      const cart = await Cart.findOne({ where: { user_id: userId } });
+      if (!cart) {
+        return res.status(404).json({
+          success: false,
+          message: 'Cart not found'
+        });
+      }
+
+      const cartItem = await CartItem.findOne({
+        where: { 
+          id: item_id, 
+          cart_id: cart.id 
+        }
+      });
+
+      if (!cartItem) {
+        return res.status(404).json({
+          success: false,
+          message: 'Item not found in cart'
+        });
+      }
+
+      await cartItem.update({ quantity: parseInt(quantity) });
+
+      res.json({
+        success: true,
+        message: 'Cart item updated',
+        data: cartItem
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async removeFromCart(req, res, next) {
+    try {
+      const userId = req.user?.userId || req.headers['x-user-id'];
+      const { item_id } = req.params;
+
+      const cart = await Cart.findOne({ where: { user_id: userId } });
+      if (!cart) {
+        return res.status(404).json({
+          success: false,
+          message: 'Cart not found'
+        });
+      }
+
+      const cartItem = await CartItem.findOne({
+        where: { 
+          id: item_id, 
+          cart_id: cart.id 
+        }
+      });
+
+      if (!cartItem) {
+        return res.status(404).json({
+          success: false,
+          message: 'Item not found in cart'
+        });
+      }
+
+      await cartItem.destroy();
+
+      res.json({
+        success: true,
+        message: 'Item removed from cart'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async clearCart(req, res, next) {
+    try {
+      const userId = req.user?.userId || req.headers['x-user-id'];
+
+      const cart = await Cart.findOne({ where: { user_id: userId } });
+      if (!cart) {
+        return res.json({
+          success: true,
+          message: 'Cart is already empty'
+        });
+      }
+
+      await CartItem.destroy({ where: { cart_id: cart.id } });
+      await cart.update({ discount_code: null, discount_amount: 0 });
+
+      res.json({
+        success: true,
+        message: 'Cart cleared'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async applyDiscount(req, res, next) {
+    try {
+      const userId = req.user?.userId || req.headers['x-user-id'];
+      const { discount_code } = req.body;
+
+      const cart = await Cart.findOne({ where: { user_id: userId } });
+      if (!cart) {
+        return res.status(404).json({
+          success: false,
+          message: 'Cart not found'
+        });
+      }
+
+      // In production, validate discount code with a Coupon Service
+      // For now, simple validation
+      const discountAmount = 10.00; // Example fixed discount
+
+      await cart.update({ 
+        discount_code, 
+        discount_amount: discountAmount 
+      });
+
+      res.json({
+        success: true,
+        message: 'Discount applied',
+        data: {
+          discount_code,
+          discount_amount: discountAmount
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+module.exports = new CartController();

@@ -1,0 +1,19 @@
+{
+  "name": "final_project_web",
+  "version": "1.0.0",
+  "description": "E-commerce Microservices with Node.js",
+  "main": "index.js",
+  "scripts": {
+    "install-all": "npm install && cd api-gateway && npm install && cd ../services/user-service && npm install && cd ../product-service && npm install && cd ../cart-service && npm install && cd ../order-service && npm install && cd ../payment-service && npm install",
+    "dev": "docker-compose up",
+    "dev:gateway": "cd api-gateway && npm run dev",
+    "dev:user": "cd services/user-service && npm run dev",
+    "dev:product": "cd services/product-service && npm run dev",
+    "dev:cart": "cd services/cart-service && npm run dev",
+    "dev:order": "cd services/order-service && npm run dev",
+    "dev:payment": "cd services/payment-service && npm run dev"
+  },
+  "keywords": ["microservices", "nodejs", "ecommerce", "soa"],
+  "author": "taiphung143",
+  "license": "MIT"
+}
