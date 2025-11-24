@@ -204,9 +204,41 @@ class OrderController {
         });
       }
 
+      // Fetch product details for each order item
+      const itemsWithProductDetails = await Promise.all(order.items.map(async (item) => {
+        try {
+          const productResponse = await axios.get(`${PRODUCT_SERVICE_URL}/api/products/sku/${item.product_sku_id}`);
+          const skuData = productResponse.data.data;
+
+          return {
+            id: item.id,
+            product_sku_id: item.product_sku_id,
+            quantity: item.quantity,
+            price: item.price,
+            product_name: skuData.product?.name || 'Unknown Product',
+            product_image: skuData.product?.image_thumbnail || '../images/default-product.jpg',
+            sku_name: skuData.sku || 'N/A'
+          };
+        } catch (error) {
+          console.error(`Failed to fetch product details for SKU ${item.product_sku_id}:`, error.message);
+          return {
+            id: item.id,
+            product_sku_id: item.product_sku_id,
+            quantity: item.quantity,
+            price: item.price,
+            product_name: 'Product Unavailable',
+            product_image: '../images/default-product.jpg',
+            sku_name: 'N/A'
+          };
+        }
+      }));
+
       res.json({
         success: true,
-        data: order
+        data: {
+          ...order.toJSON(),
+          items: itemsWithProductDetails
+        }
       });
     } catch (error) {
       next(error);

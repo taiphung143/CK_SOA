@@ -300,6 +300,104 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
+app.get('/api/orders', async (req, res) => {
+  console.log(`[${new Date().toISOString()}] ✅ Manual proxy route HIT: GET /api/orders`);
+  console.log('Authorization header:', req.headers.authorization ? 'Present' : 'Missing');
+  
+  try {
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+    
+    // Forward authorization header if present
+    if (req.headers.authorization) {
+      headers['Authorization'] = req.headers.authorization;
+      
+      // Parse JWT to get userId
+      try {
+        const token = req.headers.authorization.replace('Bearer ', '');
+        const decoded = require('jsonwebtoken').decode(token);
+        if (decoded && decoded.userId) {
+          headers['x-user-id'] = decoded.userId.toString();
+          console.log('Extracted user ID from JWT:', decoded.userId);
+        }
+      } catch (err) {
+        console.error('Failed to decode JWT:', err.message);
+      }
+    }
+    
+    // Forward x-user-id if present (from JWT middleware)
+    if (req.headers['x-user-id']) {
+      headers['x-user-id'] = req.headers['x-user-id'];
+    }
+    
+    console.log('Forwarding to:', `${SERVICES.order}/api/orders`);
+    const response = await axios.get(`${SERVICES.order}/api/orders`, {
+      headers,
+      timeout: 30000
+    });
+    console.log(`[${new Date().toISOString()}] ✅ Got response from order-service: ${response.status}`);
+    return res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] ❌ Get orders proxy error:`, error.message);
+    if (error.response) {
+      console.error('Error response:', error.response.status, error.response.data);
+      return res.status(error.response.status).json(error.response.data);
+    } else {
+      return res.status(502).json({ success: false, message: 'Service unavailable', detail: error.message });
+    }
+  }
+});
+
+app.get('/api/orders/:id', async (req, res) => {
+  console.log(`[${new Date().toISOString()}] ✅ Manual proxy route HIT: GET /api/orders/${req.params.id}`);
+  console.log('Authorization header:', req.headers.authorization ? 'Present' : 'Missing');
+  
+  try {
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+    
+    // Forward authorization header if present
+    if (req.headers.authorization) {
+      headers['Authorization'] = req.headers.authorization;
+      
+      // Parse JWT to get userId
+      try {
+        const token = req.headers.authorization.replace('Bearer ', '');
+        const decoded = require('jsonwebtoken').decode(token);
+        if (decoded && decoded.userId) {
+          headers['x-user-id'] = decoded.userId.toString();
+          console.log('Extracted user ID from JWT:', decoded.userId);
+        }
+      } catch (err) {
+        console.error('Failed to decode JWT:', err.message);
+      }
+    }
+    
+    // Forward x-user-id if present (from JWT middleware)
+    if (req.headers['x-user-id']) {
+      headers['x-user-id'] = req.headers['x-user-id'];
+    }
+    
+    console.log('Forwarding to:', `${SERVICES.order}/api/orders/${req.params.id}`);
+    const response = await axios.get(`${SERVICES.order}/api/orders/${req.params.id}`, {
+      headers,
+      timeout: 30000
+    });
+    console.log(`[${new Date().toISOString()}] ✅ Got response from order-service: ${response.status}`);
+    return res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] ❌ Get order details proxy error:`, error.message);
+    if (error.response) {
+      console.error('Error response:', error.response.status, error.response.data);
+      return res.status(error.response.status).json(error.response.data);
+    } else {
+      return res.status(502).json({ success: false, message: 'Service unavailable', detail: error.message });
+    }
+  }
+});
+
 // Manual proxy for cart items to ensure body is forwarded correctly
 app.post('/api/cart/items', async (req, res) => {
   console.log(`[${new Date().toISOString()}] ✅ Manual proxy route HIT: POST /api/cart/items`);
