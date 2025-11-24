@@ -140,11 +140,24 @@ class OrderController {
       }
 
       console.log('========== CREATE ORDER SUCCESS ==========');
-      res.status(201).json({
+      const responseData = {
         success: true,
         message: 'Order created successfully',
-        data: { order }
-      });
+        data: {
+          order: {
+            id: order.id,
+            user_id: order.user_id,
+            total: order.total,
+            status: order.status,
+            shipping_address_id: order.shipping_address_id,
+            created_at: order.created_at,
+            updated_at: order.updated_at
+          }
+        }
+      };
+      console.log('Response data structure:', JSON.stringify(responseData, null, 2));
+      console.log('Order ID in response:', responseData.data.order.id);
+      res.status(201).json(responseData);
     } catch (error) {
       console.error('========== CREATE ORDER ERROR ==========');
       console.error('Error:', error.message);

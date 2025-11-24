@@ -575,6 +575,36 @@ app.use('/api/wishlist', createProxyMiddleware(proxyOptions('cart')));
 // Comment out to use manual route instead
 // app.use('/api/orders', createProxyMiddleware(proxyOptions('order')));
 
+app.post('/api/vouchers/validate', async (req, res) => {
+  console.log(`[${new Date().toISOString()}] ✅ Manual proxy route HIT: POST /api/vouchers/validate`);
+  console.log('Request body:', req.body);
+  
+  try {
+    const response = await axios.post(`${SERVICES.order}/api/orders/vouchers/validate`, req.body, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      timeout: 30000
+    });
+    console.log(`[${new Date().toISOString()}] ✅ Got response from order-service: ${response.status}`);
+    return res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] ❌ Voucher validation proxy error:`, error.message);
+    if (error.response) {
+      return res.status(error.response.status).json(error.response.data);
+    } else {
+      return res.status(502).json({ success: false, message: 'Service unavailable' });
+    }
+  }
+});
+
+// Voucher routes (handled by order service)
+app.use('/api/vouchers', (req, res, next) => {
+  // Rewrite the path to include /orders prefix
+  req.url = '/orders' + req.url;
+  next();
+}, createProxyMiddleware(proxyOptions('order')));
+
 // Payment Service routes
 app.use('/api/payments', createProxyMiddleware(proxyOptions('payment')));
 
