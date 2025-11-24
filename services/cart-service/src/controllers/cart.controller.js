@@ -17,30 +17,49 @@ class CartController {
         cart = await Cart.create({ user_id: userId });
       }
 
-      // Fetch product details from Product Service
-      if (cart.items && cart.items.length > 0) {
-        const productIds = cart.items.map(item => item.product_id);
-        const skuIds = cart.items.map(item => item.sku_id);
+      // Convert to plain object to avoid circular reference issues
+      let cartData = cart.toJSON();
 
+      // Fetch product details from Product Service
+      if (cartData.items && cartData.items.length > 0) {
         try {
-          // In production, make batch request to product service
-          const items = await Promise.all(cart.items.map(async (item) => {
-            // Simplified: In production, use proper batch API
-            return {
-              ...item.toJSON(),
-              // Product details would be fetched here
-            };
+          const items = await Promise.all(cartData.items.map(async (item) => {
+            try {
+              // Fetch product details for each item
+              const productResponse = await axios.get(
+                `${PRODUCT_SERVICE_URL}/api/products/sku/${item.product_sku_id}`
+              );
+              
+              const productData = productResponse.data.data;
+              
+              return {
+                ...item,
+                product_id: productData.product?.id,
+                product_name: productData.product?.name,
+                product_image: productData.product?.image_thumbnail,
+                sku_name: `${productData.sku} - ${productData.brand_name || ''}`,
+                sku_code: productData.sku,
+                brand_name: productData.brand_name
+              };
+            } catch (error) {
+              console.error(`Error fetching product details for SKU ${item.product_sku_id}:`, error.message);
+              return {
+                ...item,
+                product_name: 'Unknown Product',
+                product_image: '/images/default-product.jpg',
+                sku_name: 'Unknown SKU'
+              };
+            }
           }));
 
-          cart = cart.toJSON();
-          cart.items = items;
+          cartData.items = items;
         } catch (error) {
           console.error('Error fetching product details:', error);
         }
       }
 
       // Calculate totals
-      const subtotal = cart.items?.reduce((sum, item) => 
+      const subtotal = cartData.items?.reduce((sum, item) => 
         sum + (parseFloat(item.price) * item.quantity), 0) || 0;
       const discount = parseFloat(cart.discount_amount) || 0;
       const total = subtotal - discount;
@@ -48,7 +67,7 @@ class CartController {
       res.json({
         success: true,
         data: {
-          ...cart,
+          ...cartData,
           subtotal,
           discount,
           total
@@ -65,7 +84,9 @@ class CartController {
       const { product_id, sku_id, quantity = 1 } = req.body;
 
       // Verify product and SKU exist and get price
+      let price;
       try {
+        // First check if SKU has stock
         const skuResponse = await axios.get(
           `${PRODUCT_SERVICE_URL}/api/products/sku/${sku_id}/stock`
         );
@@ -76,18 +97,28 @@ class CartController {
             message: 'Product is out of stock'
           });
         }
+        
+        // Get product with SKU details to fetch price
+        const productResponse = await axios.get(
+          `${PRODUCT_SERVICE_URL}/api/products/${product_id}`
+        );
+        
+        const sku = productResponse.data.data.skus.find(s => s.id === sku_id);
+        if (!sku) {
+          return res.status(400).json({
+            success: false,
+            message: 'SKU not found for this product'
+          });
+        }
+        
+        price = sku.price;
       } catch (error) {
+        console.error('Error fetching product/SKU:', error.message);
         return res.status(400).json({
           success: false,
           message: 'Invalid product or SKU'
         });
       }
-
-      // Get product details for price
-      const productResponse = await axios.get(
-        `${PRODUCT_SERVICE_URL}/api/products/${product_id}`
-      );
-      const price = productResponse.data.data.base_price;
 
       // Find or create cart
       let cart = await Cart.findOne({ where: { user_id: userId } });
@@ -99,8 +130,7 @@ class CartController {
       let cartItem = await CartItem.findOne({
         where: { 
           cart_id: cart.id, 
-          product_id, 
-          sku_id 
+          product_sku_id: sku_id 
         }
       });
 
@@ -113,8 +143,7 @@ class CartController {
         // Add new item
         cartItem = await CartItem.create({
           cart_id: cart.id,
-          product_id,
-          sku_id,
+          product_sku_id: sku_id,
           quantity: parseInt(quantity),
           price
         });

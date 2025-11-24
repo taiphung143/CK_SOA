@@ -23,14 +23,14 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Service URLs
+// Service URLs (use container names from docker-compose)
 const SERVICES = {
-  user: process.env.USER_SERVICE_URL || 'http://localhost:3001',
-  product: process.env.PRODUCT_SERVICE_URL || 'http://localhost:3002',
-  cart: process.env.CART_SERVICE_URL || 'http://localhost:3003',
-  order: process.env.ORDER_SERVICE_URL || 'http://localhost:3004',
-  payment: process.env.PAYMENT_SERVICE_URL || 'http://localhost:3005',
-  notification: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3006',
+  user: process.env.USER_SERVICE_URL || 'http://user-service:3001',
+  product: process.env.PRODUCT_SERVICE_URL || 'http://product-service:3002',
+  cart: process.env.CART_SERVICE_URL || 'http://cart-service:3003',
+  order: process.env.ORDER_SERVICE_URL || 'http://order-service:3004',
+  payment: process.env.PAYMENT_SERVICE_URL || 'http://payment-service:3005',
+  notification: process.env.NOTIFICATION_SERVICE_URL || 'http://notification-service:3006',
 };
 
 // Proxy configuration
@@ -174,6 +174,107 @@ app.get('/api/auth/verify-email/:token', async (req, res) => {
   }
 });
 
+// Manual proxy for orders to ensure body is forwarded correctly
+app.post('/api/orders', async (req, res) => {
+  console.log(`[${new Date().toISOString()}] ✅ Manual proxy route HIT: POST /api/orders`);
+  console.log('Request body:', JSON.stringify(req.body, null, 2));
+  console.log('Authorization header:', req.headers.authorization ? 'Present' : 'Missing');
+  
+  try {
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+    
+    // Forward authorization header if present
+    if (req.headers.authorization) {
+      headers['Authorization'] = req.headers.authorization;
+      
+      // Parse JWT to get userId
+      try {
+        const token = req.headers.authorization.replace('Bearer ', '');
+        const decoded = require('jsonwebtoken').decode(token);
+        if (decoded && decoded.userId) {
+          headers['x-user-id'] = decoded.userId.toString();
+          console.log('Extracted user ID from JWT:', decoded.userId);
+        }
+      } catch (err) {
+        console.error('Failed to decode JWT:', err.message);
+      }
+    }
+    
+    // Forward x-user-id if present (from JWT middleware)
+    if (req.headers['x-user-id']) {
+      headers['x-user-id'] = req.headers['x-user-id'];
+    }
+    
+    console.log('Forwarding to:', `${SERVICES.order}/api/orders`);
+    const response = await axios.post(`${SERVICES.order}/api/orders`, req.body, {
+      headers,
+      timeout: 30000
+    });
+    console.log(`[${new Date().toISOString()}] ✅ Got response from order-service: ${response.status}`);
+    return res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] ❌ Create order proxy error:`, error.message);
+    if (error.response) {
+      console.error('Error response:', error.response.status, error.response.data);
+      return res.status(error.response.status).json(error.response.data);
+    } else {
+      return res.status(502).json({ success: false, message: 'Service unavailable', detail: error.message });
+    }
+  }
+});
+
+// Manual proxy for cart items to ensure body is forwarded correctly
+app.post('/api/cart/items', async (req, res) => {
+  console.log(`[${new Date().toISOString()}] ✅ Manual proxy route HIT: POST /api/cart/items`);
+  console.log('Request body:', JSON.stringify(req.body, null, 2));
+  console.log('Authorization header:', req.headers.authorization ? 'Present' : 'Missing');
+  
+  try {
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+    
+    if (req.headers.authorization) {
+      headers['Authorization'] = req.headers.authorization;
+      
+      // Parse JWT to get userId
+      try {
+        const token = req.headers.authorization.replace('Bearer ', '');
+        const decoded = require('jsonwebtoken').decode(token);
+        if (decoded && decoded.userId) {
+          headers['x-user-id'] = decoded.userId.toString();
+          console.log('Extracted user ID from JWT:', decoded.userId);
+        }
+      } catch (err) {
+        console.error('Failed to decode JWT:', err.message);
+      }
+    }
+    
+    if (req.headers['x-user-id']) {
+      headers['x-user-id'] = req.headers['x-user-id'];
+    }
+    
+    console.log('Forwarding to:', `${SERVICES.cart}/api/cart/items`);
+    console.log('Headers:', headers);
+    const response = await axios.post(`${SERVICES.cart}/api/cart/items`, req.body, {
+      headers,
+      timeout: 30000
+    });
+    console.log(`[${new Date().toISOString()}] ✅ Got response from cart-service: ${response.status}`);
+    return res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] ❌ Add to cart proxy error:`, error.message);
+    if (error.response) {
+      console.error('Error response:', error.response.status, error.response.data);
+      return res.status(error.response.status).json(error.response.data);
+    } else {
+      return res.status(502).json({ success: false, message: 'Cart service unavailable', detail: error.message });
+    }
+  }
+});
+
 // Route proxying
 // User Service routes - /api/auth/login handled manually above
 // app.use('/api/auth', createProxyMiddleware(proxyOptions('user'))); // Commented out - manually handling auth routes
@@ -185,11 +286,28 @@ app.use('/api/products', createProxyMiddleware(proxyOptions('product')));
 app.use('/api/categories', createProxyMiddleware(proxyOptions('product')));
 
 // Cart Service routes
+// Middleware to parse JWT and add x-user-id header for cart routes
+app.use('/api/cart', (req, res, next) => {
+  if (req.headers.authorization) {
+    try {
+      const token = req.headers.authorization.replace('Bearer ', '');
+      const decoded = require('jsonwebtoken').decode(token);
+      if (decoded && decoded.userId) {
+        req.headers['x-user-id'] = decoded.userId.toString();
+        console.log(`[${new Date().toISOString()}] Added x-user-id: ${decoded.userId} for ${req.method} ${req.path}`);
+      }
+    } catch (err) {
+      console.error('Failed to decode JWT for cart route:', err.message);
+    }
+  }
+  next();
+});
 app.use('/api/cart', createProxyMiddleware(proxyOptions('cart')));
 app.use('/api/wishlist', createProxyMiddleware(proxyOptions('cart')));
 
-// Order Service routes
-app.use('/api/orders', createProxyMiddleware(proxyOptions('order')));
+// Order Service routes - POST /api/orders handled manually above  
+// Comment out to use manual route instead
+// app.use('/api/orders', createProxyMiddleware(proxyOptions('order')));
 
 // Payment Service routes
 app.use('/api/payments', createProxyMiddleware(proxyOptions('payment')));

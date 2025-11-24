@@ -104,14 +104,13 @@ class CategoryController {
 
   async createCategory(req, res, next) {
     try {
-      const { name, slug, description, image, parent_id } = req.body;
+      const { name, slug, description, image } = req.body;
 
       const category = await Category.create({
         name,
         slug,
         description,
-        image,
-        parent_id: parent_id || null
+        image
       });
 
       res.status(201).json({

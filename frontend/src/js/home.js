@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCategories();
     loadDealsOfTheDay();
     loadBestSellers();
-    loadRecentlyViewed();
+    initializeAdvertisements();
 });
 
 // Load categories
@@ -58,12 +58,14 @@ async function loadDealsOfTheDay() {
     if (!dealsContainer) return;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/products?hasDiscount=true&limit=8`);
+        const response = await fetch(`${API_BASE_URL}/products?is_featured=true&limit=30`);
         
         if (response.ok) {
             const result = await response.json();
             const products = result.data?.products || [];
-            renderProductCarousel(products, dealsContainer, 'deals-swiper');
+            console.log('Deals products:', products);
+            console.log('Total deals:', products.length);
+            renderDealsGrid(products, dealsContainer);
         } else {
             dealsContainer.innerHTML = '<p>No deals available.</p>';
         }
@@ -73,18 +75,106 @@ async function loadDealsOfTheDay() {
     }
 }
 
+// Render deals in grid format
+function renderDealsGrid(products, container) {
+    if (!products || products.length === 0) {
+        container.innerHTML = '<p>No deals available.</p>';
+        return;
+    }
+
+    let currentPage = 0;
+    const itemsPerPage = 10;
+    const totalPages = Math.ceil(products.length / itemsPerPage);
+    const navContainer = document.getElementById('deals-navigation-container');
+
+    function renderPage(page) {
+        let html = '';
+        
+        const start = page * itemsPerPage;
+        const end = Math.min(start + itemsPerPage, products.length);
+        
+        for (let i = start; i < end; i++) {
+            const product = products[i];
+            const skuPrice = product.skus && product.skus.length > 0 ? parseFloat(product.skus[0].price) : 0;
+            const stock = product.skus && product.skus.length > 0 ? product.skus[0].stock : 0;
+            const soldPercentage = Math.min(Math.random() * 100, 100); // Mock sold percentage
+            
+            html += `
+                <div class="column">
+                    <div class="div-deal-card">
+                        <a href="product.html?id=${product.id}" class="link-png" style="background-image: url('${product.image_thumbnail || '/images/product-image.png'}')"></a>
+                        <div class="div-top">
+                            <small class="small">Installment</small>
+                            <div class="symbol-wrapper">
+                                <i class="fas fa-heart symbol-2"></i>
+                            </div>
+                        </div>
+                        <div class="div-info">
+                            <span class="span-label">HOT</span>
+                            <a href="product.html?id=${product.id}" class="link-info">${product.name}</a>
+                            <div class="rating">
+                                <i class="fas fa-star symbol-3"></i>
+                                <i class="fas fa-star symbol-4"></i>
+                                <i class="fas fa-star symbol-5"></i>
+                                <i class="fas fa-star symbol-6"></i>
+                                <i class="far fa-star symbol-8"></i>
+                                <span class="text-wrapper-10">(4.0)</span>
+                            </div>
+                            <div class="price-info">
+                                <span class="text-wrapper-11">$${skuPrice.toFixed(2)}</span>
+                            </div>
+                            <div class="div-progress">
+                                <div class="progressbar" style="width: ${soldPercentage}%"></div>
+                            </div>
+                            <span class="text-wrapper-13">Sold: ${Math.floor(soldPercentage)}/${stock}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        container.innerHTML = html;
+        
+        // Render navigation buttons in separate container
+        if (navContainer) {
+            navContainer.innerHTML = `
+                <div class="deals-navigation">
+                    <button class="deals-nav-btn deals-prev" ${page === 0 ? 'disabled' : ''} onclick="window.dealsNavigate(-1)">
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <span class="deals-page-info">Page ${page + 1} of ${totalPages}</span>
+                    <button class="deals-nav-btn deals-next" ${page === totalPages - 1 ? 'disabled' : ''} onclick="window.dealsNavigate(1)">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    // Navigation function
+    window.dealsNavigate = function(direction) {
+        currentPage = Math.max(0, Math.min(totalPages - 1, currentPage + direction));
+        renderPage(currentPage);
+        // Scroll to deals section
+        container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    };
+
+    // Initial render
+    renderPage(currentPage);
+}
+
 // Load bestsellers
 async function loadBestSellers() {
-    const bestsellersContainer = document.getElementById('bestsellers-container');
+    const bestsellersContainer = document.getElementById('bestseller-container');
     if (!bestsellersContainer) return;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/products?sortBy=popularity&limit=8`);
+        const response = await fetch(`${API_BASE_URL}/products?sort_by=created_at&limit=20`);
         
         if (response.ok) {
             const result = await response.json();
             const products = result.data?.products || [];
-            renderProductCarousel(products, bestsellersContainer, 'bestsellers-swiper');
+            renderBestsellerSwiper(products, bestsellersContainer);
         } else {
             bestsellersContainer.innerHTML = '<p>No bestsellers available.</p>';
         }
@@ -94,139 +184,167 @@ async function loadBestSellers() {
     }
 }
 
-// Load recently viewed products
-async function loadRecentlyViewed() {
-    const recentContainer = document.getElementById('recently-viewed-container');
-    if (!recentContainer) return;
-
-    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-    if (!token) {
-        recentContainer.style.display = 'none';
-        return;
-    }
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/products/recently-viewed`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        
-        if (response.ok) {
-            const result = await response.json();
-            const products = result.data || [];
-            if (products && products.length > 0) {
-                renderProductCarousel(products, recentContainer, 'recent-swiper');
-            } else {
-                recentContainer.style.display = 'none';
-            }
-        } else {
-            recentContainer.style.display = 'none';
-        }
-    } catch (error) {
-        console.error('Failed to load recently viewed:', error);
-        recentContainer.style.display = 'none';
-    }
-}
-
-// Render product carousel
-function renderProductCarousel(products, container, swiperClass) {
+// Render bestseller swiper
+function renderBestsellerSwiper(products, container) {
     if (!products || products.length === 0) {
         container.innerHTML = '<p>No products available.</p>';
         return;
     }
 
-    let html = `<div class="swiper ${swiperClass}">
-        <div class="swiper-wrapper">`;
+    let html = '';
     
     products.forEach(product => {
-        // Get price from first SKU
         const skuPrice = product.skus && product.skus.length > 0 ? parseFloat(product.skus[0].price) : 0;
-        
-        // For now, disable discount logic since it's not in the API response
-        const hasDiscount = false; // product.discount_percent > 0;
-        const originalPrice = skuPrice;
-        const discountedPrice = hasDiscount ? originalPrice * (1 - product.discount_percent / 100) : originalPrice;
         
         html += `
             <div class="swiper-slide">
                 <div class="product-card">
-                    ${hasDiscount ? `<span class="badge discount-badge">-${product.discount_percent}%</span>` : ''}
                     <div class="product-image">
                         <a href="product.html?id=${product.id}">
-                            <img src="${product.image_thumbnail || '../images/product-image.png'}" alt="${product.name}">
+                            <img src="${product.image_thumbnail || '/images/product-image.png'}" alt="${product.name}">
                         </a>
+                        ${product.is_featured ? '<span class="badge">Featured</span>' : ''}
                     </div>
                     <div class="product-info">
-                        <div class="product-name"><a href="product.html?id=${product.id}">${product.name}</a></div>
-                        <div class="product-price">
-                            <span class="price">$${originalPrice.toFixed(2)}</span>
-                            ${hasDiscount ? `<span class="original-price">$${originalPrice.toFixed(2)}</span>` : ''}
+                        <div class="product-name">
+                            <a href="product.html?id=${product.id}">${product.name}</a>
                         </div>
-                        <button class="btn btn-primary add-to-cart-btn" onclick="addToCart(${product.id})">
-                            <i class="fas fa-shopping-cart"></i> Add to Cart
-                        </button>
+                        <div class="product-price">
+                            <span class="price">$${skuPrice.toFixed(2)}</span>
+                        </div>
                     </div>
                 </div>
             </div>
         `;
     });
     
-    html += `</div>
-        <div class="swiper-button-next"></div>
-        <div class="swiper-button-prev"></div>
-        <div class="swiper-pagination"></div>
-    </div>`;
-    
     container.innerHTML = html;
     
-    // Check if Swiper is available
-    if (typeof Swiper === 'undefined') {
-        console.error('Swiper library not loaded!');
+    // Initialize Swiper
+    if (typeof Swiper !== 'undefined') {
+        setTimeout(() => {
+            new Swiper('.mySwiper', {
+                slidesPerView: 1,
+                spaceBetween: 20,
+                loop: false,
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                },
+                pagination: {
+                    el: '.swiper-pagination',
+                    clickable: true,
+                },
+                breakpoints: {
+                    640: { slidesPerView: 2 },
+                    768: { slidesPerView: 3 },
+                    1024: { slidesPerView: 4 },
+                    1280: { slidesPerView: 5 },
+                },
+            });
+        }, 100);
+    }
+}
+
+// Initialize advertisement animations and load featured products
+async function initializeAdvertisements() {
+    const adsContainer = document.getElementById('advertisements-container');
+    if (!adsContainer) return;
+    
+    // Load featured products for advertisements
+    try {
+        const response = await fetch(`${API_BASE_URL}/products?is_featured=true&limit=10`);
+        if (response.ok) {
+            const result = await response.json();
+            const products = result.data?.products || [];
+            renderAdvertisements(products, adsContainer);
+        } else {
+            console.error('Failed to load featured products for ads');
+        }
+    } catch (error) {
+        console.error('Failed to load featured products for ads:', error);
+    }
+}
+
+// Render advertisements with product data
+function renderAdvertisements(products, container) {
+    if (!products || products.length < 2) {
+        container.innerHTML = '<p>No featured products available.</p>';
         return;
     }
     
-    // Initialize Swiper immediately
-    try {
-        const swiperElement = container.querySelector(`.${swiperClass}`);
-        console.log(`Initializing swiper for ${swiperClass}, element found:`, swiperElement);
-        
-        if (!swiperElement) {
-            console.error(`Swiper element .${swiperClass} not found in container`);
-            return;
-        }
-        
-        const swiper = new Swiper(swiperElement, {
-            slidesPerView: 1,
-            spaceBetween: 20,
-            loop: false,
-            navigation: {
-                nextEl: swiperElement.querySelector('.swiper-button-next'),
-                prevEl: swiperElement.querySelector('.swiper-button-prev'),
-            },
-            pagination: {
-                el: swiperElement.querySelector('.swiper-pagination'),
-                clickable: true,
-            },
-            breakpoints: {
-                640: {
-                    slidesPerView: 2,
-                },
-                768: {
-                    slidesPerView: 3,
-                },
-                1024: {
-                    slidesPerView: 4,
-                },
-                1280: {
-                    slidesPerView: 5,
-                },
-            },
+    // Get product data with fallbacks
+    const product1 = products[0] || {};
+    const product2 = products[1] || {};
+    const product3 = products[2] || {};
+    const product4 = products[3] || {};
+    const product5 = products[4] || {};
+    
+    const price1 = product1.skus?.[0]?.price || 0;
+    const price2 = product2.skus?.[0]?.price || 0;
+    const price3 = product3.skus?.[0]?.price || 0;
+    const price4 = product4.skus?.[0]?.price || 0;
+    const price5 = product5.skus?.[0]?.price || 0;
+    
+    const html = `
+        <div class="adv-grid-1">
+            <div class="adv-1-1 adv advr-trans">
+                <img src="${product1.image_thumbnail || '/images/watch_2.jpg'}" alt="${product1.name || ''}">
+                <div class="text">
+                    <h2>${product1.name || 'Featured Product'}</h2>
+                    <p>${product1.description || 'Special Offer'}</p>
+                </div>
+                <button class="button" onclick="window.location.href='product.html?id=${product1.id}'">Shop Now</button>
+            </div>
+            <div class="adv-1-2 adv advl-trans">
+                <img src="${product2.image_thumbnail || '/images/watch_1.jpg'}" alt="${product2.name || ''}">
+                <div class="text">
+                    <h2>${product2.name || 'Featured Product'}</h2>
+                    <p>${product2.description || 'Limited Time Deal'}</p>
+                </div>
+                <button class="button" onclick="window.location.href='product.html?id=${product2.id}'">Shop Now</button>
+            </div>
+        </div>
+        <div class="adv-grid-2">
+            <div class="adv-2-1 adv advt-trans">
+                <img src="${product3.image_thumbnail || '/images/products/macbook_pro_16.jpg'}" alt="${product3.name || ''}">
+                <div class="text">
+                    <h2>${product3.name || 'New Arrival'}</h2>
+                    <p>${product3.description || 'Best Price'}</p>
+                </div>
+                <button class="button" onclick="window.location.href='product.html?id=${product3.id}'">Shop Now</button>
+            </div>
+            <div class="adv-2-2 adv advt-trans">
+                <img src="${product4.image_thumbnail || '/images/products/s24_ultra.jpg'}" alt="${product4.name || ''}">
+                <div class="text">
+                    <h2>${product4.name || 'Hot Deal'}</h2>
+                    <p>from</p>
+                    <p class="price">$${parseFloat(price4).toFixed(2)}</p>
+                </div>
+                <button class="button" onclick="window.location.href='product.html?id=${product4.id}'">Shop Now</button>
+            </div>
+            <div class="adv-2-3 adv advt-trans">
+                <img src="${product5.image_thumbnail || '/images/products/iphone_15.jpg'}" alt="${product5.name || ''}">
+                <div class="text">
+                    <p>Latest Model</p>
+                    <h2>${product5.name || 'Top Rated'}</h2>
+                </div>
+                <button class="button" onclick="window.location.href='product.html?id=${product5.id}'">Shop Now</button>
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+    
+    // Add animation after render
+    setTimeout(() => {
+        const advElements = container.querySelectorAll('.adv');
+        advElements.forEach((el, index) => {
+            setTimeout(() => {
+                el.classList.add('show');
+            }, index * 200);
         });
-        console.log(`Swiper initialized successfully for ${swiperClass}:`, swiper);
-    } catch (error) {
-        console.error(`Error initializing swiper for ${swiperClass}:`, error);
-    }
+    }, 100);
 }
 
 // Add to cart function
