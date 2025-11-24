@@ -4,12 +4,41 @@ const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000/api';
 
 // Initialize cart page
 document.addEventListener('DOMContentLoaded', () => {
-    loadCart();
+    // Check authentication first
+    const token = checkAuthentication();
+    if (!token) {
+        showLoginRequired();
+    } else {
+        loadCart();
+    }
 });
 
 // Check if user is authenticated
 function checkAuthentication() {
     return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+}
+
+// Show login required message
+function showLoginRequired() {
+    const container = document.getElementById('cart-container');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="empty-cart">
+            <div class="empty-cart-message">
+                <i class="fas fa-user-lock" style="font-size: 80px; color: #6c757d; margin-bottom: 20px;"></i>
+                <h3>Vui lòng đăng nhập</h3>
+                <p>Bạn cần đăng nhập để xem giỏ hàng của mình</p>
+                <a href="login.html" class="login-link" style="display: inline-block; margin-top: 20px; padding: 12px 30px; background-color: #007bff; color: white !important; text-decoration: none; border-radius: 5px; font-weight: 600;">
+                    <i class="fas fa-sign-in-alt" style="color: white !important; margin-right: 8px;"></i> Đăng nhập ngay
+                </a>
+                <br>
+                <a href="index.html" class="continue-shopping" style="display: inline-block; margin-top: 15px; color: #ffffff !important; text-decoration: none;">
+                    <i class="fas fa-arrow-left" style="color: white !important; margin-right: 8px;"></i> Quay lại trang chủ
+                </a>
+            </div>
+        </div>
+    `;
 }
 
 // Load cart data
@@ -18,10 +47,15 @@ async function loadCart() {
     const token = checkAuthentication();
 
     if (!container) return;
+    
+    if (!token) {
+        showLoginRequired();
+        return;
+    }
 
     try {
         const response = await fetch(`${API_BASE_URL}/cart`, {
-            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (response.ok) {
@@ -29,24 +63,19 @@ async function loadCart() {
             const cartData = result.data || result;
             renderCart(cartData, container);
         } else if (response.status === 401) {
-            container.innerHTML = `
-                <div class="empty-cart">
-                    <div class="empty-cart-message">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <h3>Please Login</h3>
-                        <p>You need to login to view your cart</p>
-                        <a href="login.html" class="login-link">Đăng nhập</a>
-                    </div>
-                </div>
-            `;
+            // Token invalid or expired
+            localStorage.removeItem('authToken');
+            sessionStorage.removeItem('authToken');
+            showLoginRequired();
         } else {
+            const data = await response.json();
             container.innerHTML = `
                 <div class="empty-cart">
                     <div class="empty-cart-message">
                         <i class="fas fa-exclamation-circle"></i>
-                        <h3>Error</h3>
-                        <p>Failed to load cart. Please try again.</p>
-                        <a href="index.html" class="continue-shopping">Go Home</a>
+                        <h3>Không thể tải giỏ hàng</h3>
+                        <p>${data.message || 'Đã xảy ra lỗi. Vui lòng thử lại sau.'}</p>
+                        <a href="index.html" class="continue-shopping">Về trang chủ</a>
                     </div>
                 </div>
             `;
@@ -57,9 +86,9 @@ async function loadCart() {
             <div class="empty-cart">
                 <div class="empty-cart-message">
                     <i class="fas fa-exclamation-circle"></i>
-                    <h3>Connection Error</h3>
-                    <p>Error loading cart. Please check your connection.</p>
-                    <a href="index.html" class="continue-shopping">Go Home</a>
+                    <h3>Lỗi kết nối</h3>
+                    <p>Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.</p>
+                    <a href="index.html" class="continue-shopping">Về trang chủ</a>
                 </div>
             </div>
         `;
@@ -75,8 +104,8 @@ function renderCart(cartData, container) {
             <div class="empty-cart">
                 <div class="empty-cart-message">
                     <i class="fas fa-shopping-cart"></i>
-                    <h3>Your cart is empty</h3>
-                    <p>Add some products to get started!</p>
+                    <h3>Giỏ hàng trống</h3>
+                    <p>Bạn chưa có sản phẩm nào trong giỏ hàng!</p>
                     <a href="index.html" class="continue-shopping">Tiếp tục mua sắm</a>
                 </div>
             </div>
@@ -227,6 +256,11 @@ function attachEvents() {
 async function updateCart(itemId, quantity) {
     const token = checkAuthentication();
     
+    if (!token) {
+        showLoginRequired();
+        return;
+    }
+    
     try {
         const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {
             method: 'PUT',
@@ -257,6 +291,11 @@ async function updateCart(itemId, quantity) {
 // Remove item from cart
 async function removeCartItem(itemId) {
     const token = checkAuthentication();
+    
+    if (!token) {
+        showLoginRequired();
+        return;
+    }
     
     try {
         const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {
