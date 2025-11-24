@@ -1,4 +1,4 @@
-const { Product, ProductSKU, ProductImage, Category } = require('../models');
+const { Product, ProductSKU, SubCategory } = require('../models');
 const { Op } = require('sequelize');
 
 class ProductController {
@@ -40,24 +40,24 @@ class ProductController {
       if (search) {
         whereClause[Op.or] = [
           { name: { [Op.like]: `%${search}%` } },
-          { description: { [Op.like]: `%${search}%` } },
-          { brand: { [Op.like]: `%${search}%` } }
+          { description: { [Op.like]: `%${search}%` } }
         ];
-      }
-
-      if (min_price || max_price) {
-        whereClause.base_price = {};
-        if (min_price) whereClause.base_price[Op.gte] = min_price;
-        if (max_price) whereClause.base_price[Op.lte] = max_price;
       }
 
       const { count, rows } = await Product.findAndCountAll({
         where: whereClause,
         include: [
           { 
-            model: Category, 
+            model: SubCategory, 
             as: 'category',
-            attributes: ['id', 'name', 'slug'] 
+            attributes: ['id', 'name', 'parent_id'],
+            include: [
+              {
+                model: require('../models').Category,
+                as: 'parent',
+                attributes: ['id', 'name', 'slug']
+              }
+            ]
           },
           { 
             model: ProductSKU, 
@@ -97,18 +97,20 @@ class ProductController {
         where: { id, active: true },
         include: [
           { 
-            model: Category, 
+            model: SubCategory, 
             as: 'category',
-            attributes: ['id', 'name', 'slug'] 
+            attributes: ['id', 'name', 'parent_id'],
+            include: [
+              {
+                model: require('../models').Category,
+                as: 'parent',
+                attributes: ['id', 'name', 'slug']
+              }
+            ]
           },
           { 
             model: ProductSKU, 
             as: 'skus'
-          },
-          {
-            model: ProductImage,
-            as: 'images',
-            order: [['display_order', 'ASC']]
           }
         ]
       });
@@ -119,51 +121,6 @@ class ProductController {
           message: 'Product not found'
         });
       }
-
-      // Increment view count
-      await product.increment('view_count');
-
-      res.json({
-        success: true,
-        data: product
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async getProductBySlug(req, res, next) {
-    try {
-      const { slug } = req.params;
-
-      const product = await Product.findOne({
-        where: { slug, active: true },
-        include: [
-          { 
-            model: Category, 
-            as: 'category',
-            attributes: ['id', 'name', 'slug'] 
-          },
-          { 
-            model: ProductSKU, 
-            as: 'skus'
-          },
-          {
-            model: ProductImage,
-            as: 'images',
-            order: [['display_order', 'ASC']]
-          }
-        ]
-      });
-
-      if (!product) {
-        return res.status(404).json({
-          success: false,
-          message: 'Product not found'
-        });
-      }
-
-      await product.increment('view_count');
 
       res.json({
         success: true,
@@ -178,27 +135,22 @@ class ProductController {
     try {
       const { 
         category_id, 
+        sub_category_id,
         name, 
-        slug, 
-        description, 
-        base_price, 
-        discount_percentage,
-        brand,
-        main_image,
+        description,
+        description_2,
+        image_thumbnail,
         is_featured,
-        skus,
-        images
+        skus
       } = req.body;
 
       const product = await Product.create({
         category_id,
+        sub_category_id,
         name,
-        slug,
         description,
-        base_price,
-        discount_percentage: discount_percentage || 0,
-        brand,
-        main_image,
+        description_2,
+        image_thumbnail,
         is_featured: is_featured || false
       });
 
@@ -209,17 +161,6 @@ class ProductController {
           product_id: product.id
         }));
         await ProductSKU.bulkCreate(skuData);
-      }
-
-      // Create images if provided
-      if (images && images.length > 0) {
-        const imageData = images.map((img, index) => ({
-          product_id: product.id,
-          image_url: img.url,
-          is_primary: img.is_primary || false,
-          display_order: img.display_order || index
-        }));
-        await ProductImage.bulkCreate(imageData);
       }
 
       res.status(201).json({
@@ -307,6 +248,37 @@ class ProductController {
     }
   }
 
+  async getSKU(req, res, next) {
+    try {
+      const { sku_id } = req.params;
+
+      const sku = await ProductSKU.findOne({
+        where: { id: sku_id },
+        include: [
+          {
+            model: Product,
+            as: 'product',
+            attributes: ['id', 'name', 'description', 'image_thumbnail', 'category_id']
+          }
+        ]
+      });
+
+      if (!sku) {
+        return res.status(404).json({
+          success: false,
+          message: 'SKU not found'
+        });
+      }
+
+      res.json({
+        success: true,
+        data: sku
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async updateStock(req, res, next) {
     try {
       const { sku_id } = req.params;
@@ -320,7 +292,7 @@ class ProductController {
         });
       }
 
-      let newQuantity = sku.stock_quantity;
+      let newQuantity = sku.stock;
       if (operation === 'add') {
         newQuantity += parseInt(quantity);
       } else if (operation === 'subtract') {
@@ -331,8 +303,7 @@ class ProductController {
       }
 
       await sku.update({ 
-        stock_quantity: newQuantity,
-        is_available: newQuantity > 0
+        stock: newQuantity
       });
 
       res.json({
@@ -340,7 +311,7 @@ class ProductController {
         message: 'Stock updated successfully',
         data: {
           sku_id: sku.id,
-          stock_quantity: sku.stock_quantity
+          stock: sku.stock
         }
       });
     } catch (error) {

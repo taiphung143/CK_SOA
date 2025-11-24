@@ -12,6 +12,11 @@ const RecentlyViewed = require('./RecentlyViewed');
 Category.hasMany(SubCategory, { foreignKey: 'parent_id', as: 'subcategories' });
 SubCategory.belongsTo(Category, { foreignKey: 'parent_id', as: 'parent' });
 
+// Product associations
+Product.belongsTo(SubCategory, { foreignKey: 'category_id', as: 'category' });
+Product.belongsTo(SubCategory, { foreignKey: 'sub_category_id', as: 'subCategory' });
+SubCategory.hasMany(Product, { foreignKey: 'category_id', as: 'products' });
+
 module.exports = {
   Category,
   Product,

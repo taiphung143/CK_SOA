@@ -1,184 +1,232 @@
 // Cart.js - Handle shopping cart functionality
 
-const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000/api'; // API Gateway URL
+const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000/api';
 
 // Initialize cart page
 document.addEventListener('DOMContentLoaded', () => {
-    checkAuthentication();
     loadCart();
 });
 
 // Check if user is authenticated
 function checkAuthentication() {
-    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-    
-    if (!token) {
-        window.location.href = 'login.html';
-    }
+    return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
 }
 
 // Load cart data
 async function loadCart() {
-    const cartContainer = document.getElementById('cart-container');
-    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    const container = document.getElementById('cart-container');
+    const token = checkAuthentication();
 
-    if (!cartContainer) return;
-
-    // Show loading state
-    cartContainer.innerHTML = '<div class="text-center py-5"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+    if (!container) return;
 
     try {
         const response = await fetch(`${API_BASE_URL}/cart`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
         });
 
         if (response.ok) {
-            const cartData = await response.json();
-            renderCart(cartData, cartContainer);
+            const result = await response.json();
+            const cartData = result.data || result;
+            renderCart(cartData, container);
+        } else if (response.status === 401) {
+            container.innerHTML = `
+                <div class="empty-cart">
+                    <div class="empty-cart-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <h3>Please Login</h3>
+                        <p>You need to login to view your cart</p>
+                        <a href="login.html" class="login-link">Đăng nhập</a>
+                    </div>
+                </div>
+            `;
         } else {
-            cartContainer.innerHTML = '<div class="alert alert-danger">Failed to load cart. Please try again.</div>';
+            container.innerHTML = `
+                <div class="empty-cart">
+                    <div class="empty-cart-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <h3>Error</h3>
+                        <p>Failed to load cart. Please try again.</p>
+                        <a href="index.html" class="continue-shopping">Go Home</a>
+                    </div>
+                </div>
+            `;
         }
     } catch (error) {
         console.error('Failed to load cart:', error);
-        cartContainer.innerHTML = '<div class="alert alert-danger">Error loading cart. Please check your connection.</div>';
+        container.innerHTML = `
+            <div class="empty-cart">
+                <div class="empty-cart-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <h3>Connection Error</h3>
+                    <p>Error loading cart. Please check your connection.</p>
+                    <a href="index.html" class="continue-shopping">Go Home</a>
+                </div>
+            </div>
+        `;
     }
 }
 
-// Render cart
+// Render cart with PHP-style product cards
 function renderCart(cartData, container) {
-    if (!cartData || !cartData.items || cartData.items.length === 0) {
+    const items = Array.isArray(cartData) ? cartData : (cartData.items || []);
+    
+    if (!items || items.length === 0) {
         container.innerHTML = `
-            <div class="empty-cart text-center py-5">
-                <i class="fas fa-shopping-cart fa-5x text-muted mb-3"></i>
-                <h3>Your cart is empty</h3>
-                <p>Add some products to get started!</p>
-                <a href="home.html" class="btn btn-primary">Continue Shopping</a>
+            <div class="empty-cart">
+                <div class="empty-cart-message">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h3>Your cart is empty</h3>
+                    <p>Add some products to get started!</p>
+                    <a href="index.html" class="continue-shopping">Tiếp tục mua sắm</a>
+                </div>
             </div>
         `;
         return;
     }
 
-    let subtotal = 0;
-    let html = `
-        <div class="cart-content">
-            <div class="row">
-                <div class="col-lg-8">
-                    <div class="card">
-                        <div class="card-body">
-                            <h4 class="mb-4">Shopping Cart (${cartData.items.length} items)</h4>
-                            <div class="table-responsive">
-                                <table class="table cart-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Product</th>
-                                            <th>Price</th>
-                                            <th>Quantity</th>
-                                            <th>Total</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-    `;
+    let originalTotal = 0;
+    let finalTotal = 0;
+    let hasDiscount = false;
 
-    cartData.items.forEach(item => {
-        const price = item.has_discount ? 
-            item.price * (1 - item.discount_percent / 100) : 
-            item.price;
-        const itemTotal = price * item.quantity;
-        subtotal += itemTotal;
+    // Build products HTML
+    let productsHtml = '<div class="products-container">';
+    items.forEach(item => {
+        const itemPrice = parseFloat(item.price) || 0;
+        const discountPercent = parseFloat(item.discount_percent) || 0;
+        const quantity = parseInt(item.quantity) || 1;
+        const hasItemDiscount = item.has_discount && discountPercent > 0;
+        
+        const finalPrice = hasItemDiscount ? itemPrice * (1 - discountPercent / 100) : itemPrice;
+        const itemOriginalTotal = itemPrice * quantity;
+        const itemFinalTotal = finalPrice * quantity;
+        
+        originalTotal += itemOriginalTotal;
+        finalTotal += itemFinalTotal;
+        if (hasItemDiscount) hasDiscount = true;
 
-        html += `
-            <tr data-item-id="${item.id}">
-                <td>
-                    <div class="d-flex align-items-center">
-                        <img src="${item.product_image || '../images/default-product.jpg'}" 
-                             alt="${item.product_name}" 
-                             style="width: 80px; height: 80px; object-fit: cover; margin-right: 15px;">
-                        <div>
-                            <h6>${item.product_name}</h6>
-                            <small class="text-muted">${item.sku_name || ''}</small>
-                            ${item.has_discount ? `<span class="badge bg-danger">-${item.discount_percent}%</span>` : ''}
-                        </div>
-                    </div>
-                </td>
-                <td>
-                    <strong>$${price.toFixed(2)}</strong>
-                    ${item.has_discount ? `<br><small class="text-muted"><s>$${item.price.toFixed(2)}</s></small>` : ''}
-                </td>
-                <td>
-                    <div class="quantity-controls">
-                        <button class="btn btn-sm btn-outline-secondary" onclick="updateQuantity(${item.id}, ${item.quantity - 1})">-</button>
-                        <input type="number" class="form-control form-control-sm mx-2" value="${item.quantity}" 
-                               min="1" style="width: 60px; text-align: center;" 
-                               onchange="updateQuantity(${item.id}, this.value)">
-                        <button class="btn btn-sm btn-outline-secondary" onclick="updateQuantity(${item.id}, ${item.quantity + 1})">+</button>
-                    </div>
-                </td>
-                <td><strong>$${itemTotal.toFixed(2)}</strong></td>
-                <td>
-                    <button class="btn btn-sm btn-danger" onclick="removeFromCart(${item.id})">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
-
-    html += `
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+        productsHtml += `
+        <div class="product-card" data-item-id="${item.id}">
+            <div class="product-image">
+                <a href="product.html?id=${item.product_id || ''}"><img src="${item.product_image || '/images/default-product.jpg'}" alt="${item.product_name || 'Product'}"></a>
+            </div>
+            <div class="top-tags">
+                ${item.brand_name ? `<div class="brand-tag">${item.brand_name}</div>` : ''}
+                <div class="rating"><span class="star">★</span><span class="rating-count">(152)</span></div>
+            </div>
+            <div class="info">
+                <h6><a href="product.html?id=${item.product_id || ''}">${item.product_name || 'Unknown Product'}</a></h6>
+                ${hasItemDiscount ? `
+                <h5 class="price discount">
+                    <span class="current-price">${formatCurrency(finalPrice)}</span>
+                    <span class="original-price">${formatCurrency(itemPrice)}</span>
+                    <span class="discount-badge">-${discountPercent}%</span>
+                </h5>` : `
+                <h5 class="price">${formatCurrency(itemPrice)}</h5>`}
+                <div class="sku-info">SKU: ${item.sku_name || 'N/A'}</div>
+                <div class="add-more">
+                    <span class="qt-minus" data-item-id="${item.id}">−</span>
+                    <div class="input"><div>${quantity}</div></div>
+                    <span class="qt-plus" data-item-id="${item.id}">+</span>
                 </div>
-                <div class="col-lg-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h4 class="mb-4">Order Summary</h4>
-                            <div class="d-flex justify-content-between mb-3">
-                                <span>Subtotal:</span>
-                                <strong>$${subtotal.toFixed(2)}</strong>
-                            </div>
-                            <div class="d-flex justify-content-between mb-3">
-                                <span>Shipping:</span>
-                                <strong>Free</strong>
-                            </div>
-                            <hr>
-                            <div class="d-flex justify-content-between mb-4">
-                                <h5>Total:</h5>
-                                <h5 class="text-primary">$${subtotal.toFixed(2)}</h5>
-                            </div>
-                            <a href="checkout.html" class="btn btn-primary w-100 mb-2">
-                                <i class="fas fa-lock"></i> Proceed to Checkout
-                            </a>
-                            <a href="home.html" class="btn btn-outline-secondary w-100">
-                                Continue Shopping
-                            </a>
-                        </div>
-                    </div>
+                ${hasItemDiscount ? `
+                <div class="item-total discount">
+                    <span>Thành tiền:</span>
+                    <span class="current-total">${formatCurrency(itemFinalTotal)}</span>
+                    <span class="original-total">${formatCurrency(itemOriginalTotal)}</span>
+                </div>` : `
+                <div class="item-total">Thành tiền: ${formatCurrency(itemFinalTotal)}</div>`}
+                <div class="action-buttons">
+                    <a href="#" class="remove-btn" data-item-id="${item.id}"><i class="fas fa-times"></i></a>
+                    <a href="product.html?id=${item.product_id || ''}" class="view-btn"><i class="fas fa-eye"></i></a>
                 </div>
             </div>
+        </div>`;
+    });
+    productsHtml += '</div>';
+
+    // Build summary HTML
+    const discountAmount = originalTotal - finalTotal;
+    let summaryHtml = `
+        <div class="cart-card">
+            <h6 class="summary-title">Thông tin đơn hàng</h6>
+            ${hasDiscount ? `
+            <div class="card-item">
+                <span class="item-label">Giá gốc:</span>
+                <span class="original-price">${formatCurrency(originalTotal)}</span>
+            </div>
+            <div class="card-item discount-amount">
+                <span class="item-label">Giảm giá:</span>
+                <span class="discount-value">-${formatCurrency(discountAmount)}</span>
+            </div>
+            <div class="card-item">
+                <span class="item-label">Tạm tính:</span>
+                <strong class="discounted-price">${formatCurrency(finalTotal)}</strong>
+            </div>` : `
+            <div class="card-item">
+                <span class="item-label">Tạm tính:</span>
+                <strong>${formatCurrency(finalTotal)}</strong>
+            </div>`}
+            <div class="card-item">
+                <span class="item-label">Phí vận chuyển:</span>
+                <strong>Miễn phí</strong>
+            </div>
+            <div class="card-item total">
+                <span class="item-label">Tổng cộng:</span>
+                <strong class="${hasDiscount ? 'discounted-price' : ''}">${formatCurrency(finalTotal)}</strong>
+            </div>
+            <a href="checkout.html" class="checkout-btn">Thanh toán</a>
         </div>
     `;
 
-    container.innerHTML = html;
+    container.innerHTML = productsHtml + summaryHtml;
+    attachEvents();
 }
 
-// Update item quantity
-async function updateQuantity(itemId, newQuantity) {
-    newQuantity = parseInt(newQuantity);
+// Format currency helper
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+}
+
+// Attach event listeners to cart buttons
+function attachEvents() {
+    // Quantity increase buttons
+    document.querySelectorAll('.qt-plus').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const itemId = this.dataset.itemId;
+            const card = this.closest('.product-card');
+            const input = card.querySelector('.input div');
+            const qty = parseInt(input.textContent) + 1;
+            updateCart(itemId, qty);
+        });
+    });
+
+    // Quantity decrease buttons
+    document.querySelectorAll('.qt-minus').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const itemId = this.dataset.itemId;
+            const card = this.closest('.product-card');
+            const input = card.querySelector('.input div');
+            const qty = parseInt(input.textContent);
+            if (qty > 1) {
+                updateCart(itemId, qty - 1);
+            }
+        });
+    });
+
+    // Remove buttons
+    document.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const itemId = this.dataset.itemId;
+            removeCartItem(itemId);
+        });
+    });
+}
+
+// Update cart item quantity
+async function updateCart(itemId, quantity) {
+    const token = checkAuthentication();
     
-    if (newQuantity < 1) {
-        if (confirm('Remove this item from cart?')) {
-            removeFromCart(itemId);
-        }
-        return;
-    }
-
-    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-
     try {
         const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {
             method: 'PUT',
@@ -186,27 +234,30 @@ async function updateQuantity(itemId, newQuantity) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ quantity: newQuantity })
+            body: JSON.stringify({ quantity })
         });
 
-        if (response.ok) {
-            loadCart(); // Reload cart
+        const data = await response.json();
+        
+        if (data.success) {
+            loadCart();
             if (window.headerAPI) {
                 window.headerAPI.loadCartCount();
             }
+            showNotification(data.message || 'Giỏ hàng đã được cập nhật', 'success');
         } else {
-            alert('Failed to update quantity');
+            showNotification(data.message || 'Không thể cập nhật giỏ hàng', 'error');
         }
     } catch (error) {
-        console.error('Update quantity error:', error);
-        alert('Error updating quantity');
+        console.error('Update cart error:', error);
+        showNotification('Đã xảy ra lỗi khi cập nhật giỏ hàng', 'error');
     }
 }
 
 // Remove item from cart
-async function removeFromCart(itemId) {
-    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-
+async function removeCartItem(itemId) {
+    const token = checkAuthentication();
+    
     try {
         const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {
             method: 'DELETE',
@@ -215,20 +266,58 @@ async function removeFromCart(itemId) {
             }
         });
 
-        if (response.ok) {
-            loadCart(); // Reload cart
+        const data = await response.json();
+        
+        if (data.success) {
+            loadCart();
             if (window.headerAPI) {
                 window.headerAPI.loadCartCount();
             }
+            showNotification(data.message || 'Sản phẩm đã được xóa khỏi giỏ hàng', 'success');
         } else {
-            alert('Failed to remove item');
+            showNotification(data.message || 'Không thể xóa sản phẩm khỏi giỏ hàng', 'error');
         }
     } catch (error) {
-        console.error('Remove item error:', error);
-        alert('Error removing item');
+        console.error('Remove cart item error:', error);
+        showNotification('Đã xảy ra lỗi khi xóa sản phẩm', 'error');
     }
 }
 
+// Update cart count badge in header
+function updateCartBadge(count) {
+    const cartBadge = document.querySelector('.cart-count');
+    if (cartBadge) {
+        cartBadge.textContent = count;
+        cartBadge.style.display = count > 0 ? 'flex' : 'none';
+    }
+}
+
+// Show notification messages
+function showNotification(message, type = 'success') {
+    const notificationContainer = document.createElement('div');
+    notificationContainer.className = `notification ${type}`;
+    
+    const icon = document.createElement('i');
+    icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+    
+    const messageText = document.createElement('span');
+    messageText.textContent = message;
+    
+    notificationContainer.appendChild(icon);
+    notificationContainer.appendChild(messageText);
+    document.body.appendChild(notificationContainer);
+    
+    // Show with animation
+    setTimeout(() => notificationContainer.classList.add('show'), 10);
+    
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+        notificationContainer.classList.remove('show');
+        setTimeout(() => document.body.removeChild(notificationContainer), 300);
+    }, 3000);
+}
+
 // Make functions globally available
-window.updateQuantity = updateQuantity;
-window.removeFromCart = removeFromCart;
+window.loadCart = loadCart;
+window.updateCart = updateCart;
+window.removeCartItem = removeCartItem;

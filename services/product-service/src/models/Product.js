@@ -24,7 +24,15 @@ const Product = sequelize.define('Product', {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: {
-      model: 'categories',
+      model: 'sub_categories',
+      key: 'id'
+    }
+  },
+  sub_category_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'sub_categories',
       key: 'id'
     }
   },
@@ -64,9 +72,5 @@ const Product = sequelize.define('Product', {
   createdAt: 'created_at',
   updatedAt: 'updated_at'
 });
-
-// Associations
-Product.belongsTo(Category, { foreignKey: 'category_id', as: 'category' });
-Category.hasMany(Product, { foreignKey: 'category_id', as: 'products' });
 
 module.exports = Product;

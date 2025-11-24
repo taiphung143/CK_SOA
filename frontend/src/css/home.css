@@ -10,8 +10,7 @@ button:hover {
     align-items: flex-start;
     margin-left: 50px;
     margin-right: 50px;
-    margin-top: 20px;
-    margin-bottom: 10px;
+    margin-top: 15px;
     flex-wrap: wrap;
 }
 
@@ -21,7 +20,6 @@ button:hover {
     display: flex;
     flex-direction: column;
     align-items: center;
-    display: column;
     text-align: center;
     transition: transform 0.3s;
     margin-bottom: 10px;
@@ -31,8 +29,14 @@ button:hover {
 .link-category img {
     width: 80px;
     height: 80px;
-    background-color: rgb(255, 255, 255);
-    border-radius: 100px;
+    object-fit: cover;
+    background-color: #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s;
+}
+.link-category:hover img {
+    transform: scale(1.1);
 }
 
 
@@ -105,13 +109,20 @@ button:hover {
     opacity: 1;
     transform: translateX(0);
 }
-.adv-grid-1 img {
+.adv-grid-1 img,
+.adv-grid-2 img {
     width: 100%;
-    height: 100%;
+    aspect-ratio: 3 / 2;
     object-fit: cover;
-    display: block;
     border-radius: 20px;
 }
+
+.adv-grid-1 img:hover {
+    transform: scale(1.02);
+    transition: transform 0.3s ease-in-out;
+}
+
+
 
 /* Content overlay */
 .text {
@@ -288,7 +299,7 @@ button:hover {
     margin: 0 auto;
     height: auto;
     margin-bottom: 20px;
-    background-color: #EBEEF6;
+    background-color: #F8F8F8;
     border-radius: 20px;
     padding: 20px;
 }
@@ -394,11 +405,15 @@ button:hover {
 .link-png-5,
 .link-png-6 {
     width: 100%;
-    height: 120px;
-    /* Reduced height to fit smaller width */
+    aspect-ratio: 1 / 1;
     background-color: #f0f0f0;
-    display: block;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    border-radius: 8px;
+    object-fit: cover;
 }
+
 
 .link-png-2 {
     width: 100%;
@@ -406,6 +421,9 @@ button:hover {
     /* Reduced height to fit smaller width */
     background-color: #f0f0f0;
     display: block;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
 }
 
 /* Top Section (Installment and Heart Icon) */
@@ -636,7 +654,7 @@ button:hover {
     text-decoration: none;
     color: #000;
     border-radius: 20px;
-    background-color: #EBEEF6;
+    background-color: #F8F8F8;
     display: flex;
     transition: transform 0.3s;
 }
@@ -836,26 +854,33 @@ button:hover {
     height: 100%;
 }
 
-.swiper-wrapper {
-    display: flex !important;
-}
-
 .swiper-slide {
     text-align: center;
     font-size: 18px;
     background: #fff;
-    /* Override product.css rules that hide slides */
-    display: block !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 30px;
 }
 
 .swiper-slide img {
-    display: block;
     width: 100%;
-    height: 100%;
+    aspect-ratio: 16 / 9;
     object-fit: cover;
+    border-radius: 12px;
 }
 
-.container-category,
+
+.container-category {
+    margin: 0 auto;
+    height: auto;
+    margin-top: 20px;
+    margin-bottom: 30px;
+    background-color: #F8F8F8;
+    border-radius: 20px;
+    padding: 20px;
+}
 .container-adv,
 .container-main,
 .container-hotSearch,
