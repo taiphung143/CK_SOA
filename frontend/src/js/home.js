@@ -358,6 +358,20 @@ async function addToCart(productId) {
     }
 
     try {
+        // Fetch product details to get the first SKU
+        const productResponse = await fetch(`${API_BASE_URL}/products/${productId}`);
+        if (!productResponse.ok) {
+            alert('Failed to fetch product details');
+            return;
+        }
+        const productData = await productResponse.json();
+        const product = productData.data;
+        if (!product.skus || product.skus.length === 0) {
+            alert('No SKUs available for this product');
+            return;
+        }
+        const skuId = product.skus[0].id; // Use the first SKU
+
         const response = await fetch(`${API_BASE_URL}/cart/items`, {
             method: 'POST',
             headers: {
@@ -366,6 +380,7 @@ async function addToCart(productId) {
             },
             body: JSON.stringify({
                 product_id: productId,
+                sku_id: skuId,
                 quantity: 1
             })
         });

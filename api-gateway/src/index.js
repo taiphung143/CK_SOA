@@ -447,8 +447,101 @@ app.post('/api/cart/items', async (req, res) => {
     }
   }
 });
+app.put('/api/cart/items/:item_id', async (req, res) => {
+  console.log(`[${new Date().toISOString()}] ✅ Manual proxy route HIT: PUT /api/cart/items/${req.params.item_id}`);
+  console.log('Request body:', JSON.stringify(req.body, null, 2));
+  console.log('Authorization header:', req.headers.authorization ? 'Present' : 'Missing');
+  
+  try {
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+    
+    if (req.headers.authorization) {
+      headers['Authorization'] = req.headers.authorization;
+      
+      // Parse JWT to get userId
+      try {
+        const token = req.headers.authorization.replace('Bearer ', '');
+        const decoded = require('jsonwebtoken').decode(token);
+        if (decoded && decoded.userId) {
+          headers['x-user-id'] = decoded.userId.toString();
+          console.log('Extracted user ID from JWT:', decoded.userId);
+        }
+      } catch (err) {
+        console.error('Failed to decode JWT:', err.message);
+      }
+    }
+    
+    if (req.headers['x-user-id']) {
+      headers['x-user-id'] = req.headers['x-user-id'];
+    }
+    
+    console.log('Forwarding to:', `${SERVICES.cart}/api/cart/items/${req.params.item_id}`);
+    console.log('Headers:', headers);
+    const response = await axios.put(`${SERVICES.cart}/api/cart/items/${req.params.item_id}`, req.body, {
+      headers,
+      timeout: 30000
+    });
+    console.log(`[${new Date().toISOString()}] ✅ Got response from cart-service: ${response.status}`);
+    return res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] ❌ Update cart item proxy error:`, error.message);
+    if (error.response) {
+      console.error('Error response:', error.response.status, error.response.data);
+      return res.status(error.response.status).json(error.response.data);
+    } else {
+      return res.status(502).json({ success: false, message: 'Cart service unavailable', detail: error.message });
+    }
+  }
+});
 
-// Route proxying
+// Manual proxy for removing cart items
+app.delete('/api/cart/items/:item_id', async (req, res) => {
+  console.log(`[${new Date().toISOString()}] ✅ Manual proxy route HIT: DELETE /api/cart/items/${req.params.item_id}`);
+  console.log('Authorization header:', req.headers.authorization ? 'Present' : 'Missing');
+  
+  try {
+    const headers = {};
+    
+    if (req.headers.authorization) {
+      headers['Authorization'] = req.headers.authorization;
+      
+      // Parse JWT to get userId
+      try {
+        const token = req.headers.authorization.replace('Bearer ', '');
+        const decoded = require('jsonwebtoken').decode(token);
+        if (decoded && decoded.userId) {
+          headers['x-user-id'] = decoded.userId.toString();
+          console.log('Extracted user ID from JWT:', decoded.userId);
+        }
+      } catch (err) {
+        console.error('Failed to decode JWT:', err.message);
+      }
+    }
+    
+    if (req.headers['x-user-id']) {
+      headers['x-user-id'] = req.headers['x-user-id'];
+    }
+    
+    console.log('Forwarding to:', `${SERVICES.cart}/api/cart/items/${req.params.item_id}`);
+    console.log('Headers:', headers);
+    const response = await axios.delete(`${SERVICES.cart}/api/cart/items/${req.params.item_id}`, {
+      headers,
+      timeout: 30000
+    });
+    console.log(`[${new Date().toISOString()}] ✅ Got response from cart-service: ${response.status}`);
+    return res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] ❌ Remove cart item proxy error:`, error.message);
+    if (error.response) {
+      console.error('Error response:', error.response.status, error.response.data);
+      return res.status(error.response.status).json(error.response.data);
+    } else {
+      return res.status(502).json({ success: false, message: 'Cart service unavailable', detail: error.message });
+    }
+  }
+});
 // User Service routes - /api/auth/login handled manually above
 // app.use('/api/auth', createProxyMiddleware(proxyOptions('user'))); // Commented out - manually handling auth routes
 app.use('/api/users', createProxyMiddleware(proxyOptions('user')));

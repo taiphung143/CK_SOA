@@ -25,29 +25,63 @@ class CartController {
         try {
           const items = await Promise.all(cartData.items.map(async (item) => {
             try {
-              // Fetch product details for each item
-              const productResponse = await axios.get(
-                `${PRODUCT_SERVICE_URL}/api/products/sku/${item.product_sku_id}`
-              );
-              
-              const productData = productResponse.data.data;
-              
-              return {
-                ...item,
-                product_id: productData.product?.id,
-                product_name: productData.product?.name,
-                product_image: productData.product?.image_thumbnail,
-                sku_name: `${productData.sku} - ${productData.brand_name || ''}`,
-                sku_code: productData.sku,
-                brand_name: productData.brand_name
-              };
-            } catch (error) {
-              console.error(`Error fetching product details for SKU ${item.product_sku_id}:`, error.message);
+              // prefer `sku_id` (DB column) but fall back to `product_id` lookup
+              if (item.sku_id) {
+                const skuResp = await axios.get(`${PRODUCT_SERVICE_URL}/api/products/sku/${item.sku_id}`);
+                const skuData = skuResp.data.data;
+
+                return {
+                  ...item,
+                  product_sku_id: item.sku_id,
+                  product_id: skuData.product?.id || item.product_id,
+                  product_name: skuData.product?.name || 'Unknown Product',
+                  product_image: skuData.product?.image_thumbnail || '/images/default-product.jpg',
+                  sku_name: `${skuData.sku || ''}${skuData.brand_name ? ' - ' + skuData.brand_name : ''}`.trim(),
+                  sku_code: skuData.sku || null,
+                  brand_name: skuData.brand_name || null,
+                  needs_fix: false,
+                  product_ref: { product_id: skuData.product?.id || item.product_id, sku_id: item.sku_id }
+                };
+              }
+
+              if (item.product_id) {
+                // If SKU is missing, fetch product and take first SKU as fallback
+                const prodResp = await axios.get(`${PRODUCT_SERVICE_URL}/api/products/${item.product_id}`);
+                const prodData = prodResp.data.data;
+                const firstSKU = Array.isArray(prodData.skus) && prodData.skus.length ? prodData.skus[0] : null;
+
+                return {
+                  ...item,
+                  product_sku_id: firstSKU ? firstSKU.id : null,
+                  product_id: prodData.id || item.product_id,
+                  product_name: prodData.name || 'Unknown Product',
+                  product_image: prodData.image_thumbnail || '/images/default-product.jpg',
+                  sku_name: firstSKU ? `${firstSKU.sku}${firstSKU.brand_name ? ' - ' + firstSKU.brand_name : ''}` : 'N/A',
+                  sku_code: firstSKU ? firstSKU.sku : null,
+                  brand_name: firstSKU ? firstSKU.brand_name : null,
+                  needs_fix: prodData && prodData.id ? false : true,
+                  product_ref: { product_id: prodData.id || item.product_id, sku_id: firstSKU ? firstSKU.id : null }
+                };
+              }
+
+              // No product identifiers
               return {
                 ...item,
                 product_name: 'Unknown Product',
                 product_image: '/images/default-product.jpg',
-                sku_name: 'Unknown SKU'
+                sku_name: 'Unknown SKU',
+                needs_fix: true,
+                product_ref: { product_id: item.product_id || null, sku_id: item.sku_id || null }
+              };
+            } catch (error) {
+              console.error('Error fetching product details for cart item:', error.message);
+              return {
+                ...item,
+                product_name: 'Unknown Product',
+                product_image: '/images/default-product.jpg',
+                sku_name: 'Unknown SKU',
+                needs_fix: true,
+                product_ref: { product_id: item.product_id || null, sku_id: item.sku_id || null }
               };
             }
           }));
@@ -130,7 +164,7 @@ class CartController {
       let cartItem = await CartItem.findOne({
         where: { 
           cart_id: cart.id, 
-          product_sku_id: sku_id 
+          sku_id: sku_id 
         }
       });
 
@@ -143,7 +177,8 @@ class CartController {
         // Add new item
         cartItem = await CartItem.create({
           cart_id: cart.id,
-          product_sku_id: sku_id,
+          product_id: product_id,
+          sku_id: sku_id,
           quantity: parseInt(quantity),
           price
         });
