@@ -99,10 +99,14 @@ function renderDealsGrid(products, container) {
             const stock = product.skus && product.skus.length > 0 ? product.skus[0].stock : 0;
             const soldPercentage = Math.min(Math.random() * 100, 100); // Mock sold percentage
             
+            const imageUrl = product.image_thumbnail || '/images/product-image.png';
+            
             html += `
                 <div class="column">
                     <div class="div-deal-card">
-                        <a href="product.html?id=${product.id}" class="link-png" style="background-image: url('${product.image_thumbnail || '/images/product-image.png'}')"></a>
+                        <a href="product.html?id=${product.id}" class="link-png">
+                            <img src="${imageUrl}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='/images/product-image.png'">
+                        </a>
                         <div class="div-top">
                             <small class="small">Installment</small>
                             <div class="symbol-wrapper">
