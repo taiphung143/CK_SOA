@@ -13,7 +13,15 @@
     "dev:order": "cd services/order-service && npm run dev",
     "dev:payment": "cd services/payment-service && npm run dev"
   },
-  "keywords": ["microservices", "nodejs", "ecommerce", "soa"],
+  "keywords": [
+    "microservices",
+    "nodejs",
+    "ecommerce",
+    "soa"
+  ],
   "author": "taiphung143",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "vnpay": "^2.4.4"
+  }
 }

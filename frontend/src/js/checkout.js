@@ -414,7 +414,7 @@ async function placeOrder() {
 
         // Process payment
         if (selectedPaymentMethod === 'vnpay' || selectedPaymentMethod === 'momo') {
-            const paymentResponse = await fetch(`${API_BASE_URL}/payments/${selectedPaymentMethod}`, {
+            const paymentResponse = await fetch(`http://localhost:3005/api/payments/create`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -422,14 +422,21 @@ async function placeOrder() {
                 },
                 body: JSON.stringify({
                     order_id: orderId,
-                    amount: orderData.data.order.total
+                    amount: orderData.data.order.total,
+                    payment_method: selectedPaymentMethod === 'vnpay' ? 'VNPay' : 'MoMo'
                 })
             });
 
             if (paymentResponse.ok) {
                 const paymentData = await paymentResponse.json();
+                console.log('Payment response:', paymentData); // Debug log
                 // Redirect to payment gateway
-                window.location.href = paymentData.payment_url;
+                if (paymentData.success && paymentData.data?.payment_url) {
+                    window.location.href = paymentData.data.payment_url;
+                } else {
+                    console.error('Invalid payment response:', paymentData);
+                    throw new Error('Invalid payment response - missing payment URL');
+                }
             } else {
                 throw new Error('Payment initiation failed');
             }
@@ -439,7 +446,9 @@ async function placeOrder() {
         }
     } catch (error) {
         console.error('Place order error:', error);
-        alert('Failed to place order. Please try again.');
+        console.error('Error details:', error.message);
+        console.error('Error stack:', error.stack);
+        alert('Failed to place order. Please try again. Error: ' + error.message);
         submitButton.disabled = false;
         submitButton.innerHTML = '<i class="fas fa-check-circle"></i> Place Order';
     }
