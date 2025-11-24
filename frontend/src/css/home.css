@@ -78,7 +78,7 @@ button:hover {
 .adv-grid-1 {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    grid-auto-rows: 1fr;
+    grid-auto-rows: 400px;
     gap: 25px;
     margin-bottom: 25px;
 }
@@ -112,7 +112,7 @@ button:hover {
 .adv-grid-1 img,
 .adv-grid-2 img {
     width: 100%;
-    aspect-ratio: 3 / 2;
+    height: 100%;
     object-fit: cover;
     border-radius: 20px;
 }
@@ -136,28 +136,58 @@ button:hover {
     flex-direction: column;
     justify-content: space-between;
     width: 200px;
+}
 
+.text h2 {
+    font-size: 30px;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 8px;
+    color: #FFD700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    font-weight: bold;
+}
+
+.text p {
+    font-size: 20px;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #FFFFFF;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .adv-1-2 .text {
     position: absolute;
-    top: 10px;
-    left: 90px;
-    padding: 10px;
-    width: 100%;
-    font-size: 25px;
+    top: 20px;
+    left: 20px;
+    padding: 20px;
+    width: 200px;
+    margin-bottom: 10px;
 }
 
 .adv-1-2 .text h2 {
-    font-size: 25px;
+    font-size: 30px;
     margin-bottom: 5px;
-    color: red;
-}
-
-.adv-1-2 .text p {
-    font-size: 14px;
-    margin-bottom: 5px;
-    width: 100px;
+    color: #FFD700;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    font-weight: bold;
 }
 
 .adv-1-1 .button {
@@ -178,7 +208,8 @@ button:hover {
 .adv-1-2 .button {
     position: absolute;
     bottom: 30px;
-    left: 170px;
+    left: 20px;
+    margin-left: 20px;
     background-color: #4b3ec4;
     color: white;
     border: none;
@@ -189,11 +220,21 @@ button:hover {
     margin-top: 10px;
 }
 
-.text h2 {
-    font-size: 35px;
+.adv-1-1 .text h2 {
+    font-size: 30px;
     margin-bottom: 10px;
-    color: red;
-    width: 80px;
+    color: #FFD700;
+    width: auto;
+    max-width: 400px;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    font-weight: bold;
 }
 
 .adv-grid-2 {
@@ -246,29 +287,42 @@ button:hover {
 .adv-2-1 p,
 .adv-2-2 p,
 .adv-2-3 p {
-    font-size: 10px;
+    font-size: 15px;
     margin-bottom: 5px;
-    width: 80px;
+    width: 60%;
+    color: #FFFFFF;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .adv-2-1 .text {
     top: 0px;
     left: 10px;
-    width: 150px;
+    width: 250px;
 }
 
 .adv-2-2 .text,
 .adv-2-3 .text {
     top: 0px;
     left: 10px;
-    width: 100px;
+    width: 200px;
 }
 
 .adv-2-1 .text h2,
 .adv-2-2 .text h2,
 .adv-2-3 .text h2 {
-    font-size: 16px;
+    font-size: 20px;
     margin-bottom: 10px;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #FFD700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    font-weight: bold;
+    width: 60%;
 }
 
 .adv-2-2 .text .price {
@@ -412,6 +466,15 @@ button:hover {
     background-repeat: no-repeat;
     border-radius: 8px;
     object-fit: cover;
+    display: block;
+    position: relative;
+}
+
+.link-png img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 
