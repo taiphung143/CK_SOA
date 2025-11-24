@@ -89,6 +89,9 @@ class AddressController {
 
   async updateAddress(req, res, next) {
     try {
+      console.log('updateAddress called with params:', req.params);
+      console.log('updateAddress called with body:', req.body);
+      
       const { id } = req.params;
       const { 
         recipient_name, 
@@ -101,12 +104,16 @@ class AddressController {
         is_default 
       } = req.body;
 
+      console.log('Finding address with id:', id, 'and user_id:', req.user.userId);
+      
       const address = await Address.findOne({
         where: { 
           id, 
           user_id: req.user.userId 
         }
       });
+
+      console.log('Address found:', address ? 'yes' : 'no');
 
       if (!address) {
         return res.status(404).json({
@@ -117,11 +124,23 @@ class AddressController {
 
       // If setting as default, unset other defaults
       if (is_default) {
+        console.log('Setting as default, updating other addresses');
         await Address.update(
           { is_default: false },
           { where: { user_id: req.user.userId } }
         );
       }
+
+      console.log('Updating address with data:', {
+        recipient_name: recipient_name || address.recipient_name,
+        phone: phone || address.phone,
+        street_address: street_address || address.street_address,
+        city: city || address.city,
+        state: state || address.state,
+        postal_code: postal_code || address.postal_code,
+        country: country || address.country,
+        is_default: is_default !== undefined ? is_default : address.is_default
+      });
 
       await address.update({
         recipient_name: recipient_name || address.recipient_name,
@@ -134,12 +153,15 @@ class AddressController {
         is_default: is_default !== undefined ? is_default : address.is_default
       });
 
+      console.log('Address updated successfully');
+
       res.json({
         success: true,
         message: 'Address updated successfully',
         data: address
       });
     } catch (error) {
+      console.error('Error in updateAddress:', error);
       next(error);
     }
   }

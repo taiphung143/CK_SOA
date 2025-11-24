@@ -46,6 +46,14 @@ const Product = sequelize.define('Product', {
     defaultValue: 0,
     field: 'view_count'
   },
+  base_price: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true
+  },
+  discount_percent: {
+    type: DataTypes.DECIMAL(5, 2),
+    defaultValue: 0
+  },
   sub_category_id: {
     type: DataTypes.INTEGER,
     allowNull: true

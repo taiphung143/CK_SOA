@@ -4,6 +4,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const axios = require('axios');
+// const { authenticateToken } = require('./middleware/auth.middleware');
 require('dotenv').config();
 
 const app = express();
@@ -42,16 +44,18 @@ const proxyOptions = (serviceName) => ({
   timeout: 60000,
   proxyTimeout: 60000,
   onProxyReq: (proxyReq, req, res) => {
-    console.log(`[${new Date().toISOString()}] Proxying ${req.method} ${req.path} to ${serviceName}`);
+    console.log(`[${new Date().toISOString()}] Proxying ${req.method} ${req.path} to ${serviceName} (${SERVICES[serviceName]})`);
     // Log headers to debug
     console.log('Content-Length:', req.headers['content-length']);
     console.log('Content-Type:', req.headers['content-type']);
+    console.log('Authorization header present:', !!req.headers['authorization']);
   },
   onProxyRes: (proxyRes, req, res) => {
     console.log(`[${new Date().toISOString()}] Response from ${serviceName}: ${proxyRes.statusCode}`);
   },
   onError: (err, req, res) => {
     console.error(`[${new Date().toISOString()}] Error proxying to ${serviceName}:`, err.message);
+    console.error('Error details:', err);
     if (!res.headersSent) {
       res.status(502).json({
         success: false,
@@ -74,7 +78,6 @@ app.get('/health', (req, res) => {
 
 // Check all services health
 app.get('/api/health/all', async (req, res) => {
-  const axios = require('axios');
   const healthChecks = {};
   
   for (const [name, url] of Object.entries(SERVICES)) {
@@ -95,8 +98,80 @@ app.get('/api/health/all', async (req, res) => {
   });
 });
 
-// Manual proxy for auth endpoints (workaround for body forwarding issues)
-const axios = require('axios');
+app.put('/api/users/addresses/:id', async (req, res) => {
+  console.log(`[${new Date().toISOString()}] ✅ Manual proxy route HIT: PUT /api/users/addresses/${req.params.id}`);
+  console.log('Request body:', req.body);
+  console.log('Authorization header:', req.headers.authorization);
+  
+  try {
+    const response = await axios.put(`${SERVICES.user}/api/users/addresses/${req.params.id}`, req.body, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': req.headers.authorization
+      },
+      timeout: 30000
+    });
+    console.log(`[${new Date().toISOString()}] ✅ Got response from user-service: ${response.status}`);
+    return res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] ❌ Address update proxy error:`, error.message);
+    if (error.response) {
+      return res.status(error.response.status).json(error.response.data);
+    } else {
+      return res.status(502).json({ success: false, message: 'Service unavailable' });
+    }
+  }
+});
+
+app.post('/api/users/addresses', async (req, res) => {
+  console.log(`[${new Date().toISOString()}] ✅ Manual proxy route HIT: POST /api/users/addresses`);
+  console.log('Request body:', req.body);
+  console.log('Authorization header:', req.headers.authorization);
+  
+  try {
+    const response = await axios.post(`${SERVICES.user}/api/users/addresses`, req.body, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': req.headers.authorization
+      },
+      timeout: 30000
+    });
+    console.log(`[${new Date().toISOString()}] ✅ Got response from user-service: ${response.status}`);
+    return res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] ❌ Address create proxy error:`, error.message);
+    if (error.response) {
+      return res.status(error.response.status).json(error.response.data);
+    } else {
+      return res.status(502).json({ success: false, message: 'Service unavailable' });
+    }
+  }
+});
+
+app.put('/api/users/profile', async (req, res) => {
+  console.log(`[${new Date().toISOString()}] ✅ Manual proxy route HIT: PUT /api/users/profile`);
+  console.log('Request body:', req.body);
+  console.log('Authorization header:', req.headers.authorization);
+  
+  try {
+    const response = await axios.put(`${SERVICES.user}/api/users/profile`, req.body, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': req.headers.authorization
+      },
+      timeout: 30000
+    });
+    console.log(`[${new Date().toISOString()}] ✅ Got response from user-service: ${response.status}`);
+    return res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] ❌ Profile update proxy error:`, error.message);
+    if (error.response) {
+      return res.status(error.response.status).json(error.response.data);
+    } else {
+      return res.status(502).json({ success: false, message: 'Service unavailable' });
+    }
+  }
+});
 
 // Test route to verify route handling works
 console.log('🔧 Registering manual routes...');

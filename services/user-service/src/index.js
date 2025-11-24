@@ -16,13 +16,27 @@ const app = express();
 app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb', strict: false }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Set UTF-8 encoding for responses
+app.use((req, res, next) => {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  next();
+});
+
+// Add request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  console.log('Content-Type:', req.headers['content-type']);
+  console.log('Content-Length:', req.headers['content-length']);
+  next();
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/addresses', addressRoutes);
+app.use('/api/users/addresses', addressRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

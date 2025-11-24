@@ -18,6 +18,12 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Set UTF-8 encoding for responses
+app.use((req, res, next) => {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  next();
+});
+
 // Routes
 app.use('/api/products', categoryRoutes);
 app.use('/api/products', productRoutes);

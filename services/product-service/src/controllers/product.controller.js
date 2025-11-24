@@ -7,14 +7,29 @@ class ProductController {
       const { 
         page = 1, 
         limit = 12, 
-        category_id, 
+        categoryId: category_id, 
         search, 
-        min_price, 
-        max_price,
-        sort_by = 'created_at',
+        minPrice: min_price, 
+        maxPrice: max_price,
+        sortBy: sort_by = 'created_at',
         order = 'DESC',
         is_featured
       } = req.query;
+
+      // Map sortBy values to actual column names
+      const sortColumnMap = {
+        'newest': 'created_at',
+        'oldest': 'created_at',
+        'name': 'name',
+        'price': 'base_price',
+        'popularity': 'view_count'
+      };
+      
+      const actualSortBy = sortColumnMap[sort_by] || sort_by;
+      
+      // Adjust order for certain sort options
+      let actualOrder = order;
+      if (sort_by === 'oldest') actualOrder = 'ASC';
 
       const offset = (page - 1) * limit;
       const whereClause = { active: true };
@@ -53,7 +68,7 @@ class ProductController {
         ],
         limit: parseInt(limit),
         offset: parseInt(offset),
-        order: [[sort_by, order]],
+        order: [[actualSortBy, actualOrder]],
         distinct: true
       });
 
@@ -282,8 +297,9 @@ class ProductController {
         success: true,
         data: {
           sku_id: sku.id,
-          stock_quantity: sku.stock_quantity,
-          is_available: sku.is_available && sku.stock_quantity > 0
+          price: sku.price,
+          stock_quantity: sku.stock,
+          is_available: sku.stock > 0
         }
       });
     } catch (error) {

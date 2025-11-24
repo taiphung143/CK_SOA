@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS addresses (
     country VARCHAR(100) DEFAULT 'Vietnam',
     is_default TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -182,6 +183,9 @@ CREATE TABLE IF NOT EXISTS products (
     image_thumbnail VARCHAR(255) DEFAULT NULL,
     is_featured TINYINT(1) DEFAULT 0,
     active TINYINT(1) DEFAULT 1,
+    view_count INT DEFAULT 0,
+    base_price DECIMAL(10, 2) DEFAULT NULL,
+    discount_percent DECIMAL(5, 2) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES sub_categories(id) ON DELETE SET NULL,
@@ -192,9 +196,10 @@ CREATE TABLE IF NOT EXISTS products (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Insert products (sample - add all 59 products)
-INSERT INTO products (id, name, description, description_2, category_id, sub_category_id, image_thumbnail, is_featured, active, created_at, updated_at) VALUES
-(1, 'iPhone 15 Pro Max', 'Latest flagship from Apple with advanced camera system', 'Display: 6.7-inch Super Retina XDR OLED, Processor: A17 Pro chip', 1, 1, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-llxe7xfysdlr0a_tn.webp', 1, 1, '2025-04-18 05:19:10', '2025-04-27 05:41:25'),
-(2, 'Samsung Galaxy S24 Ultra', 'High-end Android phone with a powerful zoom lens', 'Snapdragon 8 Gen 3, S-Pen support', 1, 1, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ly21iyd2f5y3bf@res', 1, 1, '2025-04-18 05:19:10', '2025-04-20 08:03:42');
+-- Insert products (sample - add all 59 products)
+INSERT INTO products (id, name, description, description_2, category_id, sub_category_id, image_thumbnail, is_featured, active, view_count, base_price, discount_percent, created_at, updated_at) VALUES
+(1, 'iPhone 15 Pro Max', 'Latest flagship from Apple with advanced camera system', 'Display: 6.7-inch Super Retina XDR OLED, Processor: A17 Pro chip', 1, 1, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-llxe7xfysdlr0a_tn.webp', 1, 1, 0, 30000000.00, 0, '2025-04-18 05:19:10', '2025-04-27 05:41:25'),
+(2, 'Samsung Galaxy S24 Ultra', 'High-end Android phone with a powerful zoom lens', 'Snapdragon 8 Gen 3, S-Pen support', 1, 1, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ly21iyd2f5y3bf@res', 1, 1, 0, 1199.99, 0, '2025-04-18 05:19:10', '2025-04-20 08:03:42');
 
 -- Product SKUs table
 CREATE TABLE IF NOT EXISTS product_skus (

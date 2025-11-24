@@ -7,22 +7,22 @@ const { validate, addressSchema } = require('../middleware/validation');
 // All routes require authentication
 router.use(authenticateToken);
 
-// GET /api/addresses
+// GET /api/users/addresses
 router.get('/', addressController.getAddresses);
 
-// GET /api/addresses/:id
+// GET /api/users/addresses/:id
 router.get('/:id', addressController.getAddress);
 
-// POST /api/addresses
+// POST /api/users/addresses
 router.post('/', validate(addressSchema), addressController.createAddress);
 
-// PUT /api/addresses/:id
+// PUT /api/users/addresses/:id
 router.put('/:id', addressController.updateAddress);
 
-// DELETE /api/addresses/:id
+// DELETE /api/users/addresses/:id
 router.delete('/:id', addressController.deleteAddress);
 
-// PUT /api/addresses/:id/set-default
+// PUT /api/users/addresses/:id/set-default
 router.put('/:id/set-default', addressController.setDefaultAddress);
 
 module.exports = router;

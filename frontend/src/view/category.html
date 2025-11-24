@@ -17,16 +17,99 @@
 <body>
     <div id="header-container"></div>
 
-    <div class="container">
-        <div class="breadcrumb">
-            <a href="/">Home</a>
-            <span>/</span>
-            <span class="current">Category</span>
+    <!-- Breadcrumb -->
+    <div class="container-fluid bg-light py-2">
+        <div class="container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item active" aria-current="page" id="breadcrumb-category">Category</li>
+                </ol>
+            </nav>
         </div>
+    </div>
 
-        <section class="category-section" id="category-container">
-            <!-- Category products will be loaded dynamically -->
-        </section>
+    <!-- Main Content -->
+    <div class="container-fluid py-4">
+        <div class="container">
+            <div class="row">
+                <!-- Sidebar Filters -->
+                <div class="col-lg-3 col-md-4">
+                    <div class="filters-sidebar">
+                        <!-- Categories -->
+                        <div class="filter-section">
+                            <h5 class="filter-title">
+                                <i class="fas fa-list-ul me-2"></i>Categories
+                            </h5>
+                            <div class="category-filter" id="category-filter">
+                                <!-- Categories will be loaded here -->
+                            </div>
+                        </div>
+
+                        <!-- Price Range -->
+                        <div class="filter-section">
+                            <h5 class="filter-title">
+                                <i class="fas fa-dollar-sign me-2"></i>Price Range
+                            </h5>
+                            <div class="price-filter">
+                                <div class="mb-3">
+                                    <label class="form-label">Min Price</label>
+                                    <input type="number" class="form-control" id="min-price" placeholder="0">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Max Price</label>
+                                    <input type="number" class="form-control" id="max-price" placeholder="10000">
+                                </div>
+                                <button class="btn btn-outline-primary btn-sm w-100" id="apply-price-filter">
+                                    Apply Filter
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Sort Options -->
+                        <div class="filter-section">
+                            <h5 class="filter-title">
+                                <i class="fas fa-sort me-2"></i>Sort By
+                            </h5>
+                            <select class="form-select" id="sort-by">
+                                <option value="newest">Newest First</option>
+                                <option value="oldest">Oldest First</option>
+                                <option value="name">Name A-Z</option>
+                                <option value="price">Price Low-High</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Grid -->
+                <div class="col-lg-9 col-md-8">
+                    <div class="products-section">
+                        <!-- Results Header -->
+                        <div class="results-header d-flex justify-content-between align-items-center mb-4">
+                            <div class="results-count">
+                                <span id="results-text">Loading products...</span>
+                            </div>
+                            <div class="view-options">
+                                <button class="btn btn-outline-secondary btn-sm me-2" id="grid-view" title="Grid View">
+                                    <i class="fas fa-th"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" id="list-view" title="List View">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Products Container -->
+                        <div id="products-container" class="products-grid">
+                            <!-- Products will be loaded here -->
+                        </div>
+
+                        <!-- Pagination -->
+                        <div id="pagination-container" class="mt-5"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="footer-container"></div>

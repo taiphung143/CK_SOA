@@ -11,6 +11,7 @@ let currentFilters = {
     maxPrice: null,
     sortBy: 'newest'
 };
+let currentView = 'grid'; // 'grid' or 'list'
 
 // Initialize category page
 document.addEventListener('DOMContentLoaded', () => {
@@ -18,12 +19,13 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCategories();
     loadProducts();
     initializeFilters();
+    initializeViewToggle();
 });
 
 // Parse URL parameters
 function parseURLParameters() {
     const urlParams = new URLSearchParams(window.location.search);
-    currentFilters.categoryId = urlParams.get('id');
+    currentFilters.categoryId = urlParams.get('categoryId') || urlParams.get('id');
     currentFilters.search = urlParams.get('search');
 }
 
@@ -31,7 +33,7 @@ function parseURLParameters() {
 async function loadCategories() {
     try {
         const response = await fetch(`${API_BASE_URL}/products/categories`);
-        
+
         if (response.ok) {
             const result = await response.json();
             const categories = result.data || [];
@@ -44,31 +46,38 @@ async function loadCategories() {
 
 // Render category filter
 function renderCategoryFilter(categories) {
-    const filterContainer = document.querySelector('.category-filter');
+    const filterContainer = document.getElementById('category-filter');
     if (!filterContainer) return;
 
-    let html = '<h5>Categories</h5><ul class="list-unstyled">';
+    let html = '';
     categories.forEach(category => {
         html += `
             <li>
-                <a href="?id=${category.id}" class="${currentFilters.categoryId == category.id ? 'active' : ''}">
+                <a href="?categoryId=${category.id}" class="${currentFilters.categoryId == category.id ? 'active' : ''}">
                     ${category.name}
                 </a>
             </li>
         `;
     });
-    html += '</ul>';
-    filterContainer.innerHTML = html;
+    filterContainer.innerHTML = `<ul class="list-unstyled">${html}</ul>`;
+
+    // Update breadcrumb
+    if (currentFilters.categoryId) {
+        const currentCategory = categories.find(cat => cat.id == currentFilters.categoryId);
+        if (currentCategory) {
+            document.getElementById('breadcrumb-category').textContent = currentCategory.name;
+        }
+    }
 }
 
 // Load products
 async function loadProducts() {
-    const container = document.getElementById('category-container');
+    const container = document.getElementById('products-container');
     container.innerHTML = '<div class="text-center py-5"><div class="spinner-border"></div></div>';
 
     try {
         let url = `${API_BASE_URL}/products?page=${currentPage}`;
-        
+
         if (currentFilters.categoryId) {
             url += `&categoryId=${currentFilters.categoryId}`;
         }
@@ -89,17 +98,18 @@ async function loadProducts() {
         }
 
         const response = await fetch(url);
-        
+
         if (response.ok) {
             const data = await response.json();
-            renderProducts(data.products || data, container);
-            renderPagination(data.pagination);
+            renderProducts(data.data?.products || [], container);
+            renderPagination(data.data?.pagination);
+            updateResultsCount(data.data?.pagination);
         } else {
             container.innerHTML = '<div class="alert alert-warning">No products found.</div>';
         }
     } catch (error) {
+        container.innerHTML = '<div class="alert alert-danger">Failed to load products. Please try again.</div>';
         console.error('Failed to load products:', error);
-        container.innerHTML = '<div class="alert alert-danger">Error loading products.</div>';
     }
 }
 
@@ -110,40 +120,74 @@ function renderProducts(products, container) {
         return;
     }
 
-    let html = '<div class="row">';
-    
-    products.forEach(product => {
-        const hasDiscount = product.discount_percent > 0;
-        const price = hasDiscount ? 
-            product.price * (1 - product.discount_percent / 100) : 
-            product.price;
+    let html = '';
+    const viewClass = currentView === 'grid' ? 'products-grid' : 'products-list';
 
-        html += `
-            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+    products.forEach(product => {
+        // Get price from first available SKU
+        const skuPrice = product.skus && product.skus.length > 0 ? parseFloat(product.skus[0].price) : null;
+
+        // For now, disable discount logic since it's not in the API response
+        const hasDiscount = false; // product.discount_percent > 0;
+        const price = skuPrice || 0;
+        const originalPrice = skuPrice || 0;
+
+        if (currentView === 'grid') {
+            html += `
                 <div class="product-card">
-                    ${hasDiscount ? `<span class="badge discount-badge">-${product.discount_percent}%</span>` : ''}
-                    <a href="product.html?id=${product.id}">
-                        <img src="${product.image_thumbnail || '../images/default-product.jpg'}" 
-                             alt="${product.name}" 
-                             class="product-image">
-                    </a>
+                    ${hasDiscount ? `<span class="discount-badge">-${product.discount_percent}%</span>` : ''}
+                    <div class="product-image-container">
+                        <a href="product.html?id=${product.id}">
+                            <img src="${product.image_thumbnail || '../images/default-product.jpg'}"
+                                 alt="${product.name}"
+                                 class="product-image">
+                        </a>
+                    </div>
                     <div class="product-info">
                         <h5><a href="product.html?id=${product.id}">${product.name}</a></h5>
-                        <p class="text-muted small">${product.category_name || ''}</p>
+                        <p class="product-category">${product.category?.name || ''}</p>
                         <div class="product-price">
-                            <span class="price">$${price.toFixed(2)}</span>
-                            ${hasDiscount ? `<span class="original-price">$${product.price.toFixed(2)}</span>` : ''}
+                            <span class="price">${skuPrice !== null ? '$' + price.toFixed(2) : 'Price not available'}</span>
+                            ${hasDiscount ? `<span class="original-price">$${originalPrice.toFixed(2)}</span>` : ''}
                         </div>
-                        <button class="btn btn-primary btn-sm w-100 mt-2" onclick="addToCart(${product.id})">
+                        <button class="add-to-cart-btn" onclick="addToCart(${product.id})">
                             <i class="fas fa-shopping-cart"></i> Add to Cart
                         </button>
                     </div>
                 </div>
-            </div>
-        `;
+            `;
+        } else {
+            html += `
+                <div class="product-card-list">
+                    <div class="product-image-container-list">
+                        <a href="product.html?id=${product.id}">
+                            <img src="${product.image_thumbnail || '../images/default-product.jpg'}"
+                                 alt="${product.name}"
+                                 class="product-image-list">
+                        </a>
+                    </div>
+                    <div class="product-info-list">
+                        <div>
+                            <h5><a href="product.html?id=${product.id}">${product.name}</a></h5>
+                            <p class="product-description">${product.description ? product.description.substring(0, 150) + '...' : ''}</p>
+                        </div>
+                        <div class="product-meta">
+                            <span class="product-category-list">${product.category?.name || ''}</span>
+                            <div class="product-price">
+                                <span class="price">${skuPrice !== null ? '$' + price.toFixed(2) : 'Price not available'}</span>
+                                ${hasDiscount ? `<span class="original-price">$${originalPrice.toFixed(2)}</span>` : ''}
+                            </div>
+                            <button class="add-to-cart-btn-list" onclick="addToCart(${product.id})">
+                                <i class="fas fa-shopping-cart"></i> Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
     });
-    
-    html += '</div>';
+
+    container.className = viewClass;
     container.innerHTML = html;
 }
 
@@ -152,7 +196,7 @@ function renderPagination(pagination) {
     const paginationContainer = document.getElementById('pagination-container');
     if (!paginationContainer || !pagination) return;
 
-    const { currentPage, totalPages } = pagination;
+    const { page: currentPage, totalPages } = pagination;
     let html = '<nav><ul class="pagination justify-content-center">';
 
     // Previous button
@@ -253,6 +297,51 @@ async function addToCart(productId) {
     } catch (error) {
         console.error('Add to cart error:', error);
         alert('Error adding to cart');
+    }
+}
+
+// Initialize view toggle
+function initializeViewToggle() {
+    const gridViewBtn = document.getElementById('grid-view');
+    const listViewBtn = document.getElementById('list-view');
+
+    if (gridViewBtn && listViewBtn) {
+        gridViewBtn.addEventListener('click', () => {
+            currentView = 'grid';
+            gridViewBtn.classList.add('active');
+            listViewBtn.classList.remove('active');
+            loadProducts();
+        });
+
+        listViewBtn.addEventListener('click', () => {
+            currentView = 'list';
+            listViewBtn.classList.add('active');
+            gridViewBtn.classList.remove('active');
+            loadProducts();
+        });
+
+        // Set initial active state
+        if (currentView === 'grid') {
+            gridViewBtn.classList.add('active');
+        } else {
+            listViewBtn.classList.add('active');
+        }
+    }
+}
+
+// Update results count
+function updateResultsCount(pagination) {
+    const resultsText = document.getElementById('results-text');
+    if (!resultsText || !pagination) return;
+
+    const { total, page, limit, totalPages } = pagination;
+    const start = (page - 1) * limit + 1;
+    const end = Math.min(page * limit, total);
+
+    if (total === 0) {
+        resultsText.textContent = 'No products found';
+    } else {
+        resultsText.textContent = `Showing ${start}-${end} of ${total} products`;
     }
 }
 

@@ -9,13 +9,27 @@ let selectedSKU = null;
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const productId = urlParams.get('id');
-    
     if (productId) {
         loadProductDetails(productId);
         trackRecentlyViewed(productId);
     } else {
         document.getElementById('product-container').innerHTML = '<div class="alert alert-danger">Product not found.</div>';
     }
+// Track recently viewed
+async function trackRecentlyViewed(productId) {
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    if (!token) return;
+    try {
+        await fetch(`${API_BASE_URL}/products/${productId}/view`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+    } catch (error) {
+        console.error('Failed to track view:', error);
+    }
+}
 });
 
 // Load product details
@@ -41,10 +55,17 @@ async function loadProductDetails(productId) {
 
 // Render product details
 function renderProductDetails(product, container) {
-    const hasDiscount = product.discount_percent > 0;
-    const price = hasDiscount ? 
-        product.price * (1 - product.discount_percent / 100) : 
-        product.price;
+    // Use selected SKU price if available, otherwise fall back to product base price
+    const currentSKU = selectedSKU || (product.skus && product.skus.length > 0 ? product.skus[0] : null);
+    const basePrice = parseFloat(currentSKU ? currentSKU.price : (product.price || product.base_price || 0));
+    const discountPercent = parseFloat(product.discount_percent || 0);
+    const hasDiscount = discountPercent > 0;
+    const price = hasDiscount ?
+        basePrice * (1 - discountPercent / 100) :
+        basePrice;
+
+    // Get stock from selected SKU or product
+    const stock = currentSKU ? currentSKU.stock : (product.stock || 0);
 
     let html = `
         <div class="row">
@@ -64,8 +85,8 @@ function renderProductDetails(product, container) {
                     <div class="product-price mb-3">
                         <h3 class="text-primary">$${price.toFixed(2)}</h3>
                         ${hasDiscount ? `
-                            <span class="text-muted text-decoration-line-through">$${product.price.toFixed(2)}</span>
-                            <span class="badge bg-danger ms-2">-${product.discount_percent}%</span>
+                            <span class="text-muted text-decoration-line-through">$${basePrice.toFixed(2)}</span>
+                            <span class="badge bg-danger ms-2">-${discountPercent}%</span>
                         ` : ''}
                     </div>
 
@@ -103,8 +124,8 @@ function renderProductDetails(product, container) {
                     <div class="product-meta">
                         <p><strong>Category:</strong> ${product.category_name || 'N/A'}</p>
                         <p><strong>Availability:</strong> 
-                            ${product.stock > 0 ? 
-                                `<span class="text-success">In Stock (${product.stock} available)</span>` : 
+                            ${stock > 0 ? 
+                                `<span class="text-success">In Stock (${stock} available)</span>` : 
                                 '<span class="text-danger">Out of Stock</span>'}
                         </p>
                     </div>
@@ -141,12 +162,56 @@ function renderSKUOptions(skus) {
 // Select SKU
 function selectSKU(index) {
     selectedSKU = currentProduct.skus[index];
-    
+
     // Update active button
     const buttons = document.querySelectorAll('.sku-options button');
     buttons.forEach((btn, i) => {
         btn.classList.toggle('active', i === index);
     });
+
+    // Update price and stock display
+    updatePriceAndStock();
+}
+
+// Update price and stock display based on selected SKU
+function updatePriceAndStock() {
+    const currentSKU = selectedSKU || (currentProduct.skus && currentProduct.skus.length > 0 ? currentProduct.skus[0] : null);
+    if (!currentSKU) return;
+
+    const basePrice = parseFloat(currentSKU.price);
+    const discountPercent = parseFloat(currentProduct.discount_percent || 0);
+    const hasDiscount = discountPercent > 0;
+    const price = hasDiscount ?
+        basePrice * (1 - discountPercent / 100) :
+        basePrice;
+    const stock = currentSKU.stock;
+
+    // Update price display
+    const priceElement = document.querySelector('.product-price h3');
+    if (priceElement) {
+        priceElement.textContent = `$${price.toFixed(2)}`;
+    }
+
+    // Update discount display if applicable
+    const discountContainer = document.querySelector('.product-price');
+    if (discountContainer && hasDiscount) {
+        const existingDiscount = discountContainer.querySelector('.text-decoration-line-through');
+        if (existingDiscount) {
+            existingDiscount.textContent = `$${basePrice.toFixed(2)}`;
+        }
+    }
+
+    // Update stock display
+    const stockElement = document.querySelector('.product-meta p:last-child span');
+    if (stockElement) {
+        if (stock > 0) {
+            stockElement.className = 'text-success';
+            stockElement.textContent = `In Stock (${stock} available)`;
+        } else {
+            stockElement.className = 'text-danger';
+            stockElement.textContent = 'Out of Stock';
+        }
+    }
 }
 
 // Quantity controls
@@ -174,6 +239,7 @@ async function addToCartWithQuantity() {
 
     const quantity = parseInt(document.getElementById('quantity').value);
     const skuId = selectedSKU ? selectedSKU.id : null;
+    const productId = currentProduct.id;
 
     try {
         const response = await fetch(`${API_BASE_URL}/cart/items`, {
@@ -183,7 +249,8 @@ async function addToCartWithQuantity() {
                 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
-                product_sku_id: skuId || currentProduct.id,
+                product_id: productId,
+                sku_id: skuId,
                 quantity: quantity
             })
         });
@@ -214,7 +281,7 @@ async function addToWishlist(productId) {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/cart/wishlist`, {
+        const response = await fetch(`${API_BASE_URL}/wishlist`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -234,23 +301,7 @@ async function addToWishlist(productId) {
     }
 }
 
-// Track recently viewed
-async function trackRecentlyViewed(productId) {
-    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-    
-    if (!token) return;
-
-    try {
-        await fetch(`${API_BASE_URL}/products/${productId}/view`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-    } catch (error) {
-        console.error('Failed to track view:', error);
-    }
-}
+// Removed trackRecentlyViewed function (no longer needed)
 
 // Make functions globally available
 window.selectSKU = selectSKU;
