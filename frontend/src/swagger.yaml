@@ -1,0 +1,740 @@
+openapi: 3.0.0
+info:
+  title: Shop365 E-Commerce API
+  description: |
+    Complete API documentation for Shop365 microservices-based e-commerce platform.
+    
+    ## Services
+    - **User Service** - Authentication, user management
+    - **Product Service** - Product catalog, categories
+    - **Cart Service** - Shopping cart, wishlist
+    - **Order Service** - Order management, vouchers
+    - **Payment Service** - Payment processing (MoMo, VNPay)
+    - **Notification Service** - Email, SMS notifications
+    
+    ## Authentication
+    Most endpoints require a JWT Bearer token in the Authorization header.
+    Admin endpoints require admin role.
+  version: 1.0.0
+  contact:
+    name: API Support
+    url: http://localhost:8080
+
+servers:
+  - url: http://localhost:3000/api
+    description: API Gateway (Development)
+
+security:
+  - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from login/register endpoints
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+        error:
+          type: object
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        full_name:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+          enum: [user, admin]
+        created_at:
+          type: string
+          format: date-time
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        category_id:
+          type: integer
+        category_name:
+          type: string
+        image_thumbnail:
+          type: string
+        active:
+          type: boolean
+        is_featured:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        user_name:
+          type: string
+        total:
+          type: string
+        status:
+          type: string
+          enum: [pending, paid, shipped, completed, cancelled]
+        created_at:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            type: object
+
+    Voucher:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        discount_type:
+          type: string
+          enum: [percentage, fixed]
+        discount_value:
+          type: number
+        min_order_value:
+          type: number
+        max_uses:
+          type: integer
+        used_count:
+          type: integer
+        start_at:
+          type: string
+          format: date-time
+        end_at:
+          type: string
+          format: date-time
+        active:
+          type: boolean
+
+paths:
+  # ==================== USER SERVICE ====================
+  /auth/register:
+    post:
+      tags:
+        - User Service
+      summary: Register new user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - full_name
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+                full_name:
+                  type: string
+                phone:
+                  type: string
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  token:
+                    type: string
+
+  /auth/login:
+    post:
+      tags:
+        - User Service
+      summary: User login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+
+  /users:
+    get:
+      tags:
+        - User Service
+      summary: Get all users (Admin only)
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      users:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
+                      pagination:
+                        type: object
+
+  /users/profile:
+    get:
+      tags:
+        - User Service
+      summary: Get current user profile
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+
+    put:
+      tags:
+        - User Service
+      summary: Update user profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                full_name:
+                  type: string
+                phone:
+                  type: string
+      responses:
+        '200':
+          description: Profile updated
+
+  # ==================== PRODUCT SERVICE ====================
+  /products:
+    get:
+      tags:
+        - Product Service
+      summary: Get all products
+      security: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: category
+          in: query
+          schema:
+            type: integer
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: featured
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      products:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Product'
+                      pagination:
+                        type: object
+
+  /products/{id}:
+    get:
+      tags:
+        - Product Service
+      summary: Get product by ID
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Product details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Product'
+
+  /categories:
+    get:
+      tags:
+        - Product Service
+      summary: Get all categories
+      security: []
+      responses:
+        '200':
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+
+  # ==================== CART SERVICE ====================
+  /cart:
+    get:
+      tags:
+        - Cart Service
+      summary: Get user's cart
+      responses:
+        '200':
+          description: Cart items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+
+    post:
+      tags:
+        - Cart Service
+      summary: Add item to cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - product_sku_id
+                - quantity
+              properties:
+                product_sku_id:
+                  type: integer
+                quantity:
+                  type: integer
+      responses:
+        '200':
+          description: Item added to cart
+
+  /cart/items/{id}:
+    put:
+      tags:
+        - Cart Service
+      summary: Update cart item quantity
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+      responses:
+        '200':
+          description: Cart item updated
+
+    delete:
+      tags:
+        - Cart Service
+      summary: Remove item from cart
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Item removed
+
+  /wishlist:
+    get:
+      tags:
+        - Cart Service
+      summary: Get user's wishlist
+      responses:
+        '200':
+          description: Wishlist items
+
+    post:
+      tags:
+        - Cart Service
+      summary: Add item to wishlist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                product_id:
+                  type: integer
+      responses:
+        '200':
+          description: Item added to wishlist
+
+  # ==================== ORDER SERVICE ====================
+  /orders:
+    get:
+      tags:
+        - Order Service
+      summary: Get user's orders or all orders (admin)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      orders:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Order'
+                      pagination:
+                        type: object
+
+    post:
+      tags:
+        - Order Service
+      summary: Create new order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - items
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      product_sku_id:
+                        type: integer
+                      quantity:
+                        type: integer
+                      price:
+                        type: number
+                shipping_address_id:
+                  type: integer
+                voucher_code:
+                  type: string
+      responses:
+        '201':
+          description: Order created
+
+  /orders/{id}:
+    get:
+      tags:
+        - Order Service
+      summary: Get order details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Order details
+
+  /orders/{id}/status:
+    put:
+      tags:
+        - Order Service
+      summary: Update order status (Admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [pending, paid, shipped, completed, cancelled]
+      responses:
+        '200':
+          description: Order status updated
+
+  /orders/vouchers/validate:
+    post:
+      tags:
+        - Order Service
+      summary: Validate voucher code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                total:
+                  type: number
+      responses:
+        '200':
+          description: Voucher validation result
+
+  /orders/vouchers:
+    get:
+      tags:
+        - Order Service
+      summary: Get all vouchers (Admin only)
+      responses:
+        '200':
+          description: List of vouchers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Voucher'
+
+    post:
+      tags:
+        - Order Service
+      summary: Create new voucher (Admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                discount_type:
+                  type: string
+                discount_value:
+                  type: number
+      responses:
+        '201':
+          description: Voucher created
+
+  # ==================== PAYMENT SERVICE ====================
+  /payments/momo/create:
+    post:
+      tags:
+        - Payment Service
+      summary: Create MoMo payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_id:
+                  type: integer
+                amount:
+                  type: number
+      responses:
+        '200':
+          description: Payment URL created
+
+  /payments/vnpay/create:
+    post:
+      tags:
+        - Payment Service
+      summary: Create VNPay payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_id:
+                  type: integer
+                amount:
+                  type: number
+      responses:
+        '200':
+          description: Payment URL created
+
+  # ==================== NOTIFICATION SERVICE ====================
+  /notifications:
+    get:
+      tags:
+        - Notification Service
+      summary: Get user notifications
+      responses:
+        '200':
+          description: List of notifications
+
+  /notifications/{id}/read:
+    put:
+      tags:
+        - Notification Service
+      summary: Mark notification as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Notification marked as read
+
+tags:
+  - name: User Service
+    description: Authentication and user management
+  - name: Product Service
+    description: Product catalog and categories
+  - name: Cart Service
+    description: Shopping cart and wishlist
+  - name: Order Service
+    description: Order management and vouchers
+  - name: Payment Service
+    description: Payment processing
+  - name: Notification Service
+    description: Notifications

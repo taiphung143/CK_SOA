@@ -572,8 +572,8 @@ app.use('/api/cart', createProxyMiddleware(proxyOptions('cart')));
 app.use('/api/wishlist', createProxyMiddleware(proxyOptions('cart')));
 
 // Order Service routes - POST /api/orders handled manually above  
-// Comment out to use manual route instead
-// app.use('/api/orders', createProxyMiddleware(proxyOptions('order')));
+// Use proxy for all other order routes including vouchers, stats, etc.
+app.use('/api/orders', createProxyMiddleware(proxyOptions('order')));
 
 app.post('/api/vouchers/validate', async (req, res) => {
   console.log(`[${new Date().toISOString()}] ✅ Manual proxy route HIT: POST /api/vouchers/validate`);

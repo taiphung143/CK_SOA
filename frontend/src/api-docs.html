@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop365 API Documentation</title>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.10.3/swagger-ui.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        .header p {
+            margin: 0.5rem 0 0;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .service-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 2px solid #f0f0f0;
+        }
+        .service-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        .service-card h3 {
+            margin: 0 0 0.5rem;
+            color: #667eea;
+            font-size: 1.3rem;
+        }
+        .service-card p {
+            margin: 0;
+            color: #666;
+            line-height: 1.6;
+        }
+        .service-port {
+            display: inline-block;
+            background: #f0f4ff;
+            color: #667eea;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+        .info-section {
+            background: #f8f9fa;
+            padding: 2rem;
+            margin: 0;
+        }
+        .info-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .info-content h2 {
+            color: #333;
+            margin-top: 0;
+        }
+        .auth-info {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin-top: 1rem;
+        }
+        #swagger-ui {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        .topbar {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛍️ Shop365 API Documentation</h1>
+        <p>Complete REST API for E-Commerce Microservices Platform</p>
+    </div>
+
+    <div class="info-section">
+        <div class="info-content">
+            <h2>📦 Microservices Architecture</h2>
+            <div class="services-grid">
+                <div class="service-card">
+                    <h3>👤 User Service</h3>
+                    <p>User authentication, registration, profile management, and admin operations</p>
+                    <span class="service-port">Port 3001</span>
+                </div>
+                <div class="service-card">
+                    <h3>📦 Product Service</h3>
+                    <p>Product catalog, categories, search, and inventory management</p>
+                    <span class="service-port">Port 3002</span>
+                </div>
+                <div class="service-card">
+                    <h3>🛒 Cart Service</h3>
+                    <p>Shopping cart operations and wishlist management</p>
+                    <span class="service-port">Port 3003</span>
+                </div>
+                <div class="service-card">
+                    <h3>📋 Order Service</h3>
+                    <p>Order processing, status tracking, and voucher management</p>
+                    <span class="service-port">Port 3004</span>
+                </div>
+                <div class="service-card">
+                    <h3>💳 Payment Service</h3>
+                    <p>Payment gateway integration (MoMo, VNPay)</p>
+                    <span class="service-port">Port 3005</span>
+                </div>
+                <div class="service-card">
+                    <h3>📧 Notification Service</h3>
+                    <p>Email and SMS notifications, preferences</p>
+                    <span class="service-port">Port 3006</span>
+                </div>
+            </div>
+
+            <div class="auth-info">
+                <h3>🔐 Authentication</h3>
+                <p><strong>API Gateway:</strong> http://localhost:3000/api</p>
+                <p><strong>Method:</strong> JWT Bearer Token</p>
+                <p><strong>Header:</strong> <code>Authorization: Bearer YOUR_TOKEN_HERE</code></p>
+                <p style="margin-top: 1rem;">
+                    <strong>Get Token:</strong> Use <code>POST /users/login</code> or <code>POST /users/register</code> endpoints
+                </p>
+                <p style="margin-top: 0.5rem; color: #ff6b6b;">
+                    <strong>Admin Access:</strong> Some endpoints require admin role (e.g., user management, voucher management)
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="swagger-ui"></div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@5.10.3/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5.10.3/swagger-ui-standalone-preset.js"></script>
+    <script>
+        window.onload = function() {
+            const ui = SwaggerUIBundle({
+                url: './swagger.yaml',
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                ],
+                plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                ],
+                layout: "BaseLayout",
+                requestInterceptor: (request) => {
+                    // Add token from localStorage if available
+                    const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+                    if (token && !request.headers.Authorization) {
+                        request.headers.Authorization = `Bearer ${token}`;
+                    }
+                    return request;
+                },
+                onComplete: () => {
+                    console.log('Swagger UI loaded successfully');
+                }
+            });
+
+            window.ui = ui;
+        };
+    </script>
+</body>
+</html>

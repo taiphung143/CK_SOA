@@ -14,11 +14,19 @@ async function loadCoupons() {
         });
         const data = await response.json();
         
+        console.log('Coupons API Response:', data);
+        
         if (data.success) {
-            displayCoupons(data.vouchers);
+            // API returns data.data (array) or data.vouchers
+            const vouchers = data.data || data.vouchers || [];
+            displayCoupons(vouchers);
+        } else {
+            console.error('API returned error:', data);
+            alert('Failed to load coupons: ' + (data.error?.message || 'Unknown error'));
         }
     } catch (error) {
         console.error('Failed to load coupons:', error);
+        alert('Network error: ' + error.message);
     }
 }
 
@@ -67,7 +75,7 @@ document.getElementById('add-coupon-form')?.addEventListener('submit', async (e)
     }
     
     try {
-        const response = await fetch(`${API_BASE_URL}/vouchers`, {
+        const response = await fetch(`${API_BASE_URL}/orders/vouchers`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -97,7 +105,7 @@ async function editCoupon(couponId) {
     const token = getAuthToken();
     
     try {
-        const response = await fetch(`${API_BASE_URL}/vouchers/${couponId}`, {
+        const response = await fetch(`${API_BASE_URL}/orders/vouchers/${couponId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();
@@ -133,7 +141,7 @@ document.getElementById('edit-coupon-form')?.addEventListener('submit', async (e
     const couponData = Object.fromEntries(formData);
     
     try {
-        const response = await fetch(`${API_BASE_URL}/vouchers/${couponId}`, {
+        const response = await fetch(`${API_BASE_URL}/orders/vouchers/${couponId}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -159,7 +167,7 @@ async function deleteCoupon(couponId) {
     const token = getAuthToken();
     
     try {
-        const response = await fetch(`${API_BASE_URL}/vouchers/${couponId}`, {
+        const response = await fetch(`${API_BASE_URL}/orders/vouchers/${couponId}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });

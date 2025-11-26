@@ -173,10 +173,16 @@ async function loadDashboardStats() {
         ]);
 
         // Parse responses safely
-        const users = usersRes.ok ? await usersRes.json() : { total: 0 };
-        const orders = ordersRes.ok ? await ordersRes.json() : { total: 0, byStatus: {} };
-        const products = productsRes.ok ? await productsRes.json() : { total: 0 };
-        const revenue = revenueRes.ok ? await revenueRes.json() : { total: 0, monthly: [] };
+        const usersData = usersRes.ok ? await usersRes.json() : { success: false };
+        const ordersData = ordersRes.ok ? await ordersRes.json() : { success: false };
+        const productsData = productsRes.ok ? await productsRes.json() : { success: false };
+        const revenueData = revenueRes.ok ? await revenueRes.json() : { success: false };
+
+        // Extract data from API response (handles data.data structure)
+        const users = usersData.success ? (usersData.data || usersData) : { total: 0 };
+        const orders = ordersData.success ? (ordersData.data || ordersData) : { total: 0, byStatus: {} };
+        const products = productsData.success ? (productsData.data || productsData) : { total: 0 };
+        const revenue = revenueData.success ? (revenueData.data || revenueData) : { total: 0, monthly: [] };
 
         console.log('Stats loaded:', { users, orders, products, revenue });
 

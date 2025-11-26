@@ -14,37 +14,82 @@ async function loadProducts() {
         });
         const data = await response.json();
         
+        console.log('Products API Response:', data);
+        
         if (data.success) {
-            displayProducts(data.products);
+            // API returns data.data.products (array) or data.products or data.data
+            const products = data.data?.products || data.products || data.data || [];
+            displayProducts(products);
+        } else {
+            console.error('API returned error:', data);
+            alert('Failed to load products: ' + (data.error?.message || 'Unknown error'));
         }
     } catch (error) {
         console.error('Failed to load products:', error);
+        alert('Network error: ' + error.message);
     }
 }
 
 // Display products in table
 function displayProducts(products) {
-    const tbody = document.getElementById('products-table-body');
-    tbody.innerHTML = products.map(product => `
-        <tr>
-            <td>${product.id}</td>
-            <td><img src="${product.image_thumbnail || '/images/default-product.png'}" width="50" height="50"></td>
-            <td>${product.name}</td>
-            <td>${product.category_name || 'N/A'}</td>
-            <td>
-                <span class="badge bg-${product.active ? 'success' : 'danger'}">
-                    ${product.active ? 'Active' : 'Inactive'}
-                </span>
-            </td>
-            <td>${product.is_featured ? 'Yes' : 'No'}</td>
-            <td>${new Date(product.created_at).toLocaleDateString()}</td>
-            <td>
-                <button class="btn btn-sm btn-info" onclick="viewProduct(${product.id})">View</button>
-                <button class="btn btn-sm btn-warning" onclick="editProduct(${product.id})">Edit</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteProduct(${product.id})">Delete</button>
-            </td>
-        </tr>
-    `).join('');
+    const container = document.getElementById('products-table-container');
+    
+    if (!container) {
+        console.error('Container element not found');
+        return;
+    }
+    
+    // Ensure products is an array
+    if (!Array.isArray(products)) {
+        console.error('Products is not an array:', products);
+        products = [];
+    }
+    
+    if (products.length === 0) {
+        container.innerHTML = '<p class="text-center text-muted">No products found</p>';
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                        <th>Featured</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${products.map(product => `
+                        <tr>
+                            <td>${product.id}</td>
+                            <td><img src="${product.image_thumbnail || '/images/default-product.png'}" width="50" height="50" alt="${product.name}"></td>
+                            <td>${product.name}</td>
+                            <td>${product.category_name || 'N/A'}</td>
+                            <td>
+                                <span class="badge bg-${product.active ? 'success' : 'danger'}">
+                                    ${product.active ? 'Active' : 'Inactive'}
+                                </span>
+                            </td>
+                            <td>${product.is_featured ? 'Yes' : 'No'}</td>
+                            <td>${new Date(product.created_at).toLocaleDateString()}</td>
+                            <td>
+                                <button class="btn btn-sm btn-info" onclick="viewProduct(${product.id})">View</button>
+                                <button class="btn btn-sm btn-warning" onclick="editProduct(${product.id})">Edit</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteProduct(${product.id})">Delete</button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
 }
 
 // Add new product

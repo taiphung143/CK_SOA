@@ -6,6 +6,11 @@ function getAuthToken() {
 
 // Load all orders
 async function loadOrders(status = '') {
+    // Handle case where event object is passed instead of string
+    if (status && typeof status === 'object' && status.target) {
+        status = status.target.value;
+    }
+    
     const token = getAuthToken();
     
     try {
@@ -15,42 +20,85 @@ async function loadOrders(status = '') {
         });
         const data = await response.json();
         
+        console.log('Orders API Response:', data);
+        
         if (data.success) {
-            displayOrders(data.orders);
+            // API returns data.data.orders (array) or data.orders or data.data
+            const orders = data.data?.orders || data.orders || data.data || [];
+            displayOrders(orders);
+        } else {
+            console.error('API returned error:', data);
+            alert('Failed to load orders: ' + (data.error?.message || 'Unknown error'));
         }
     } catch (error) {
         console.error('Failed to load orders:', error);
+        alert('Network error: ' + error.message);
     }
 }
 
 // Display orders in table
 function displayOrders(orders) {
-    const tbody = document.getElementById('orders-table-body');
-    tbody.innerHTML = orders.map(order => `
-        <tr>
-            <td>#${order.id}</td>
-            <td>${order.user_name || 'N/A'}</td>
-            <td>$${parseFloat(order.total).toFixed(2)}</td>
-            <td>
-                <span class="badge bg-${getStatusColor(order.status)}">
-                    ${order.status}
-                </span>
-            </td>
-            <td>${new Date(order.created_at).toLocaleDateString()}</td>
-            <td>
-                <button class="btn btn-sm btn-info" onclick="viewOrder(${order.id})">View</button>
-                <select class="form-select form-select-sm d-inline-block w-auto" 
-                        onchange="updateOrderStatus(${order.id}, this.value)">
-                    <option value="">Change Status</option>
-                    <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
-                    <option value="paid" ${order.status === 'paid' ? 'selected' : ''}>Paid</option>
-                    <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>Shipped</option>
-                    <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completed</option>
-                    <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
-                </select>
-            </td>
-        </tr>
-    `).join('');
+    const container = document.getElementById('orders-table-container');
+    
+    if (!container) {
+        console.error('Container element not found');
+        return;
+    }
+    
+    // Ensure orders is an array
+    if (!Array.isArray(orders)) {
+        console.error('Orders is not an array:', orders);
+        orders = [];
+    }
+    
+    if (orders.length === 0) {
+        container.innerHTML = '<p class="text-center text-muted">No orders found</p>';
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${orders.map(order => `
+                        <tr>
+                            <td>#${order.id}</td>
+                            <td>${order.user_name || 'N/A'}</td>
+                            <td>\$${parseFloat(order.total).toFixed(2)}</td>
+                            <td>
+                                <span class="badge bg-${getStatusColor(order.status)}">
+                                    ${order.status}
+                                </span>
+                            </td>
+                            <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                            <td>
+                                <button class="btn btn-sm btn-info" onclick="viewOrder(${order.id})"><i class="fas fa-eye"></i></button>
+                                <select class="form-select form-select-sm d-inline-block w-auto" 
+                                        onchange="updateOrderStatus(${order.id}, this.value)">
+                                    <option value="">Change Status</option>
+                                    <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                    <option value="paid" ${order.status === 'paid' ? 'selected' : ''}>Paid</option>
+                                    <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>Shipped</option>
+                                    <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completed</option>
+                                    <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                                </select>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
 }
 
 // Get status badge color
@@ -115,7 +163,7 @@ function showOrderDetailsModal(order) {
     modalBody.innerHTML = `
         <h5>Order #${order.id}</h5>
         <p><strong>Customer:</strong> ${order.user_name}</p>
-        <p><strong>Total:</strong> $${parseFloat(order.total).toFixed(2)}</p>
+        <p><strong>Total:</strong> \$${parseFloat(order.total).toFixed(2)}</p>
         <p><strong>Status:</strong> <span class="badge bg-${getStatusColor(order.status)}">${order.status}</span></p>
         <p><strong>Date:</strong> ${new Date(order.created_at).toLocaleString()}</p>
         
@@ -134,8 +182,8 @@ function showOrderDetailsModal(order) {
                     <tr>
                         <td>${item.product_sku_id}</td>
                         <td>${item.quantity}</td>
-                        <td>$${parseFloat(item.price).toFixed(2)}</td>
-                        <td>$${(item.quantity * parseFloat(item.price)).toFixed(2)}</td>
+                        <td>\$${parseFloat(item.price).toFixed(2)}</td>
+                        <td>\$${(item.quantity * parseFloat(item.price)).toFixed(2)}</td>
                     </tr>
                 `).join('')}
             </tbody>
