@@ -6,9 +6,9 @@ yarn-debug.log*
 yarn-error.log*
 
 # Environment variables
-.env
-.env.local
-.env.*.local
+# .env
+# .env.local
+# .env.*.local
 
 # IDE
 .vscode/
@@ -30,18 +30,18 @@ dist/
 build/
 
 # Database
-*.sql
-*.sqlite
-*.db
+# *.sql
+# *.sqlite
+# *.db
 
 # Uploads
-uploads/
-public/images/products/*
-public/images/cart/*
-public/images/categories/*
-!public/images/products/.gitkeep
-!public/images/cart/.gitkeep
-!public/images/categories/.gitkeep
+# uploads/
+# public/images/products/*
+# public/images/cart/*
+# public/images/categories/*
+# !public/images/products/.gitkeep
+# !public/images/cart/.gitkeep
+# !public/images/categories/.gitkeep
 
 # Docker
 docker-compose.override.yml
