@@ -148,50 +148,86 @@ async function viewOrder(orderId) {
         });
         const data = await response.json();
         
+        console.log('Order details response:', data);
+        
         if (data.success) {
-            // Show modal with order details
-            showOrderDetailsModal(data.order);
+            // data.data contains the order object
+            showOrderDetailsModal(data.data);
+        } else {
+            alert('Failed to load order details: ' + (data.message || 'Unknown error'));
         }
     } catch (error) {
         console.error('Failed to load order details:', error);
+        alert('Network error: ' + error.message);
     }
 }
 
 // Show order details in modal
 function showOrderDetailsModal(order) {
-    const modalBody = document.getElementById('order-details-body');
+    const modalBody = document.getElementById('order-modal-body');
+    
+    if (!modalBody) {
+        console.error('Modal body element not found');
+        return;
+    }
+    
+    // Ensure items is an array
+    const items = order.items || [];
+    
     modalBody.innerHTML = `
-        <h5>Order #${order.id}</h5>
-        <p><strong>Customer:</strong> ${order.user_name}</p>
-        <p><strong>Total:</strong> \$${parseFloat(order.total).toFixed(2)}</p>
-        <p><strong>Status:</strong> <span class="badge bg-${getStatusColor(order.status)}">${order.status}</span></p>
-        <p><strong>Date:</strong> ${new Date(order.created_at).toLocaleString()}</p>
-        
-        <h6 class="mt-3">Order Items:</h6>
-        <table class="table table-sm">
-            <thead>
-                <tr>
-                    <th>Product SKU</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                    <th>Subtotal</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${order.items.map(item => `
-                    <tr>
-                        <td>${item.product_sku_id}</td>
-                        <td>${item.quantity}</td>
-                        <td>\$${parseFloat(item.price).toFixed(2)}</td>
-                        <td>\$${(item.quantity * parseFloat(item.price)).toFixed(2)}</td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
+        <div class="order-details">
+            <h5>Order #${order.id}</h5>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <p><strong>Customer ID:</strong> ${order.user_id}</p>
+                    <p><strong>Status:</strong> <span class="badge bg-${getStatusColor(order.status)}">${order.status}</span></p>
+                    <p><strong>Payment Status:</strong> <span class="badge bg-${getStatusColor(order.payment_status || 'pending')}">${order.payment_status || 'N/A'}</span></p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Total:</strong> \$${parseFloat(order.total).toFixed(2)}</p>
+                    <p><strong>Created:</strong> ${new Date(order.created_at).toLocaleString()}</p>
+                    <p><strong>Updated:</strong> ${new Date(order.updated_at).toLocaleString()}</p>
+                </div>
+            </div>
+            
+            <h6 class="mt-3">Order Items (${items.length}):</h6>
+            ${items.length > 0 ? `
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>SKU</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${items.map(item => `
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="${item.product_image}" alt="${item.product_name}" 
+                                                 style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px;">
+                                            <span>${item.product_name}</span>
+                                        </div>
+                                    </td>
+                                    <td>${item.sku_name}</td>
+                                    <td>${item.quantity}</td>
+                                    <td>\$${parseFloat(item.price).toFixed(2)}</td>
+                                    <td>\$${(item.quantity * parseFloat(item.price)).toFixed(2)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            ` : '<p class="text-muted">No items in this order</p>'}
+        </div>
     `;
     
-    // Show Bootstrap modal
-    const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
+    // Show Bootstrap modal using correct modal ID
+    const modal = new bootstrap.Modal(document.getElementById('orderModal'));
     modal.show();
 }
 

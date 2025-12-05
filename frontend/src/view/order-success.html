@@ -37,11 +37,48 @@
         });
         fetch('/view/footer.html').then(r => r.text()).then(html => document.getElementById('footer-container').innerHTML = html);
         
-        // Load order details from URL params
+        // Check payment status from URL params
         const urlParams = new URLSearchParams(window.location.search);
-        const orderId = urlParams.get('order_id');
-        if (orderId) {
-            document.getElementById('order-details').innerHTML = `<p>Order ID: <strong>${orderId}</strong></p>`;
+        
+        // Check for VNPay response code
+        const vnpResponseCode = urlParams.get('vnp_ResponseCode');
+        
+        // Check for MoMo result code
+        const momoResultCode = urlParams.get('resultCode');
+        const momoMessage = urlParams.get('message');
+        
+        // Get order ID from different sources
+        let orderId = urlParams.get('order_id');
+        
+        // Extract from MoMo orderId (format: "56_1764702365412")
+        if (!orderId && urlParams.get('orderId')) {
+            orderId = urlParams.get('orderId').split('_')[0];
+        }
+        
+        // Extract from VNPay TxnRef
+        if (!orderId && urlParams.get('vnp_TxnRef')) {
+            orderId = urlParams.get('vnp_TxnRef').split('_')[0];
+        }
+
+        // Check if payment failed
+        let paymentFailed = false;
+        let errorMessage = '';
+        
+        if (vnpResponseCode && vnpResponseCode !== '00') {
+            paymentFailed = true;
+            errorMessage = 'VNPay payment failed or was cancelled';
+        }
+        
+        if (momoResultCode && momoResultCode !== '0') {
+            paymentFailed = true;
+            errorMessage = momoMessage ? decodeURIComponent(momoMessage) : 'MoMo payment failed or was cancelled';
+        }
+
+        // Redirect to failed page if payment failed
+        if (paymentFailed) {
+            window.location.href = `/payment-failed.html?order_id=${orderId}&message=${encodeURIComponent(errorMessage)}`;
+        } else if (orderId) {
+            document.getElementById('order-details').innerHTML = `<p>Order ID: <strong>#${orderId}</strong></p>`;
         }
     </script>
 </body>

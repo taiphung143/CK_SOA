@@ -86,20 +86,36 @@ class PaymentController {
         console.log('Updating existing pending payment for order_id:', order_id);
         // Regenerate payment URL for the update
         let updatedPaymentUrl = paymentUrl;
+        let updatedTransactionId = transactionId;
+        let updatedPaymentData = paymentData;
+        
         if (normalizedPaymentMethod === 'vnpay') {
           // Always regenerate a new payment URL for VNPay
-          const vnpayResult = await vnpayService.createPaymentUrl(
+          const vnpayResult = vnpayService.createPaymentUrl(
             order_id,
             amount,
             `Payment for Order #${order_id}`,
             ipAddr
           );
           updatedPaymentUrl = vnpayResult.paymentUrl;
+          updatedTransactionId = vnpayResult.txnRef;
+          updatedPaymentData = { txnRef: vnpayResult.txnRef };
+        } else if (normalizedPaymentMethod === 'momo') {
+          // Regenerate MoMo payment with new unique ID
+          const momoResult = await momoService.createPayment(
+            order_id,
+            amount,
+            `Payment for Order #${order_id}`
+          );
+          updatedPaymentUrl = momoResult.payUrl;
+          updatedTransactionId = momoResult.requestId;
+          updatedPaymentData = { requestId: momoResult.requestId, qrCodeUrl: momoResult.qrCodeUrl };
         }
+        
         await existingPendingPayment.update({
-          transaction_id: transactionId,
+          transaction_id: updatedTransactionId,
           amount,
-          payment_data: paymentData,
+          payment_data: updatedPaymentData,
           updated_at: new Date()
         });
 
@@ -186,7 +202,7 @@ class PaymentController {
           { payment_status: 'paid' }
         );
 
-        return res.redirect(`${process.env.FRONTEND_URL}/order-success?order_id=${orderId}`);
+        return res.redirect(`${process.env.FRONTEND_URL}/order-success.html?order_id=${orderId}&vnp_ResponseCode=00`);
       } else {
         // Payment failed
         await payment.update({ status: 'failed' });
@@ -195,7 +211,7 @@ class PaymentController {
           { payment_status: 'failed' }
         );
 
-        return res.redirect(`${process.env.FRONTEND_URL}/payment/failed?order_id=${orderId}`);
+        return res.redirect(`${process.env.FRONTEND_URL}/payment-failed.html?order_id=${orderId}&message=VNPay+payment+failed`);
       }
     } catch (error) {
       next(error);
@@ -275,19 +291,28 @@ class PaymentController {
 
   async momoCallback(req, res, next) {
     try {
-      const momoData = req.body;
+      // MoMo sends data via both GET (redirect) and POST (IPN)
+      const momoData = req.method === 'GET' ? req.query : req.body;
+      
+      console.log('MoMo Callback received:', req.method, momoData);
 
       // Verify signature
       const isValid = momoService.verifySignature(momoData);
       if (!isValid) {
+        console.error('❌ MoMo Invalid signature');
+        if (req.method === 'GET') {
+          return res.redirect(`${process.env.FRONTEND_URL}/payment/failed?reason=invalid_signature`);
+        }
         return res.status(400).json({
           success: false,
           message: 'Invalid signature'
         });
       }
 
-      const orderId = momoData.orderId;
-      const resultCode = momoData.resultCode;
+      const momoOrderId = momoData.orderId;
+      // Extract original order_id from MoMo's unique orderId (format: "123_1234567890")
+      const orderId = momoOrderId.split('_')[0];
+      const resultCode = parseInt(momoData.resultCode);
 
       const payment = await PaymentDetail.findOne({
         where: { 
@@ -315,13 +340,37 @@ class PaymentController {
           `${ORDER_SERVICE_URL}/api/orders/${orderId}/payment-status`,
           { payment_status: 'paid' }
         );
+
+        // Redirect to success page for GET requests
+        if (req.method === 'GET') {
+          return res.redirect(`${process.env.FRONTEND_URL}/order-success.html?order_id=${orderId}`);
+        }
       } else {
-        // Payment failed
-        await payment.update({ status: 'failed' });
-        await axios.put(
-          `${ORDER_SERVICE_URL}/api/orders/${orderId}/payment-status`,
-          { payment_status: 'failed' }
-        );
+        // Payment failed or cancelled
+        console.log(`❌ MoMo Payment Failed - Order: ${orderId}, ResultCode: ${resultCode}, Message: ${momoData.message}`);
+        
+        await payment.update({ 
+          status: 'failed',
+          payment_data: { ...payment.payment_data, momoData }
+        });
+
+        try {
+          // Update order payment status
+          const updateResponse = await axios.put(
+            `${ORDER_SERVICE_URL}/api/orders/${orderId}/payment-status`,
+            { payment_status: 'failed' },
+            { timeout: 5000 }
+          );
+          console.log(`✅ Order ${orderId} payment status updated to failed`);
+        } catch (orderError) {
+          console.error(`❌ Failed to update order status for ${orderId}:`, orderError.message);
+        }
+
+        // Redirect to failed page for GET requests
+        if (req.method === 'GET') {
+          const message = momoData.message || 'Payment failed';
+          return res.redirect(`${process.env.FRONTEND_URL}/payment-failed.html?order_id=${orderId}&message=${encodeURIComponent(message)}`);
+        }
       }
 
       res.json({
@@ -329,6 +378,7 @@ class PaymentController {
         message: 'Callback processed'
       });
     } catch (error) {
+      console.error('❌ MoMo Callback Error:', error);
       next(error);
     }
   }

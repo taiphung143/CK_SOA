@@ -412,6 +412,17 @@ async function placeOrder() {
 
         const orderId = orderData.data.order.id;
 
+        // Calculate the final amount with voucher discount applied
+        let subtotal = 0;
+        cartData.items.forEach(item => {
+            const price = item.has_discount ? 
+                item.price * (1 - item.discount_percent / 100) : 
+                item.price;
+            subtotal += price * item.quantity;
+        });
+        const shipping = 0;
+        const finalAmount = calculateTotal(subtotal, shipping);
+
         // Process payment
         if (selectedPaymentMethod === 'vnpay' || selectedPaymentMethod === 'momo') {
             const paymentResponse = await fetch(`http://localhost:3005/api/payments/create`, {
@@ -422,7 +433,7 @@ async function placeOrder() {
                 },
                 body: JSON.stringify({
                     order_id: orderId,
-                    amount: orderData.data.order.total,
+                    amount: finalAmount,
                     payment_method: selectedPaymentMethod === 'vnpay' ? 'VNPay' : 'MoMo'
                 })
             });

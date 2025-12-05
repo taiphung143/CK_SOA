@@ -20,19 +20,19 @@
     --light-gray: #999999;
     --card-bg: #FFFFFF;
     --order-card-bg: #f8f9fa;
-    --shadow-sm: 0 2px 5px rgba(0,0,0,0.05);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-    --shadow-lg: 0 8px 20px rgba(0,0,0,0.12);
-    --transition: all 0.3s ease;
+    --shadow-sm: 0 2px 8px rgba(75, 62, 196, 0.08);
+    --shadow-md: 0 6px 20px rgba(75, 62, 196, 0.12);
+    --shadow-lg: 0 10px 30px rgba(75, 62, 196, 0.18);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: #f5f7fa;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
     margin: 0;
     padding: 0;
     color: var(--dark-text);
-    line-height: 1.5;
+    line-height: 1.6;
 }
 
 .checkout-page {
@@ -70,53 +70,62 @@ body {
 /* Card Styles */
 .card {
     background-color: var(--white);
-    border: 1px solid var(--light-border);
-    border-radius: 12px;
+    border: none;
+    border-radius: 16px;
     box-shadow: var(--shadow-sm);
     margin-bottom: 24px;
     overflow: hidden;
     transition: var(--transition);
+    backdrop-filter: blur(10px);
 }
 
 .card:hover {
     box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
 }
 
 .card-header {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
     color: white;
-    padding: 20px 24px;
+    padding: 24px 28px;
     border-bottom: none;
     position: relative;
+    overflow: hidden;
 }
 
 .card-header::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 12px 12px 0 0;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-20px, -20px); }
 }
 
 .card-header h5 {
     margin: 0;
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 20px;
+    font-weight: 700;
     position: relative;
     z-index: 1;
+    letter-spacing: 0.3px;
 }
 
 .card-header i {
-    margin-right: 10px;
-    opacity: 0.9;
+    margin-right: 12px;
+    opacity: 0.95;
+    font-size: 18px;
 }
 
 .card-body {
-    padding: 24px;
+    padding: 28px;
 }
 
 .mb-4 {
@@ -125,27 +134,45 @@ body {
 
 /* Breadcrumb */
 .breadcrumb {
-    background-color: #FFFFFF;
-    padding: 15px 20px;
-    border-radius: 10px;
-    margin-bottom: 25px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+    padding: 18px 24px;
+    border-radius: 12px;
+    margin-bottom: 28px;
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: center;
     box-shadow: var(--shadow-sm);
     margin-top: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(75, 62, 196, 0.1);
 }
 
 .breadcrumb a {
-    color: #999999;
+    color: var(--light-text);
     font-weight: 600;
     font-size: 14px;
     text-decoration: none;
+    transition: var(--transition);
+    position: relative;
+}
+
+.breadcrumb a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--primary-color);
     transition: var(--transition);
 }
 
 .breadcrumb a:hover {
     color: var(--primary-color);
+}
+
+.breadcrumb a:hover::after {
+    width: 100%;
 }
 
 .breadcrumb span {
@@ -155,28 +182,43 @@ body {
 }
 
 .breadcrumb .current {
-    color: #000000;
+    color: var(--primary-color);
     font-weight: 700;
 }
 
 /* Checkout Section Styles */
 .checkout-section {
-    background-color: var(--white);
-    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.95));
+    border-radius: 16px;
     margin-bottom: 30px;
-    padding: 35px;
+    padding: 40px;
     box-shadow: var(--shadow-md);
+    border: 1px solid rgba(75, 62, 196, 0.08);
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+}
+
+.checkout-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--primary-color), var(--primary-light));
 }
 
 .checkout-section .checkout-title {
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 700;
     text-transform: uppercase;
     margin-top: 0;
-    margin-bottom: 25px;
+    margin-bottom: 28px;
     color: var(--primary-color);
     position: relative;
-    padding-bottom: 10px;
+    padding-bottom: 12px;
+    letter-spacing: 0.5px;
 }
 
 .checkout-section .checkout-title::after {
@@ -184,9 +226,10 @@ body {
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 60px;
-    height: 3px;
-    background-color: var(--primary-color);
+    width: 70px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+    border-radius: 2px;
 }
 
 /* Alert Styles */
@@ -316,12 +359,13 @@ input[type="email"],
 select,
 textarea {
     width: 100%;
-    padding: 12px 15px;
-    border: 1px solid var(--light-border);
-    border-radius: 8px;
+    padding: 14px 18px;
+    border: 2px solid var(--light-border);
+    border-radius: 10px;
     font-size: 14px;
     transition: var(--transition);
     background-color: white;
+    font-family: inherit;
 }
 
 input[type="text"]:focus,
@@ -331,7 +375,8 @@ select:focus,
 textarea:focus {
     border-color: var(--primary-color);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(75, 62, 196, 0.1);
+    box-shadow: 0 0 0 4px rgba(75, 62, 196, 0.12);
+    transform: translateY(-1px);
 }
 
 .select-wrapper {
@@ -404,16 +449,19 @@ textarea {
 .address-card {
     position: relative;
     border: 2px solid var(--light-border);
-    border-radius: 10px;
-    padding: 20px;
+    border-radius: 14px;
+    padding: 24px;
     cursor: pointer;
     transition: var(--transition);
     display: block;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+    backdrop-filter: blur(10px);
 }
 
 .address-card.selected {
     border-color: var(--primary-color);
-    background-color: rgba(75, 62, 196, 0.05);
+    background: linear-gradient(135deg, rgba(75, 62, 196, 0.08), rgba(106, 93, 211, 0.06));
+    box-shadow: 0 6px 20px rgba(75, 62, 196, 0.2);
 }
 
 .address-card.default {
@@ -423,7 +471,7 @@ textarea {
 .address-card:hover {
     box-shadow: var(--shadow-md);
     border-color: var(--primary-light);
-    transform: translateY(-3px);
+    transform: translateY(-4px) scale(1.01);
 }
 
 .address-radio {
@@ -476,26 +524,46 @@ textarea {
 .btn-add-address {
     display: inline-flex;
     align-items: center;
-    padding: 12px 20px;
-    background-color: white;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
     color: var(--primary-color);
-    border: 1px dashed var(--primary-color);
-    border-radius: 8px;
+    border: 2px dashed var(--primary-color);
+    border-radius: 12px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
     margin-bottom: 25px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-add-address::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-add-address:hover::before {
+    left: 100%;
 }
 
 .btn-add-address:hover {
-    background-color: var(--primary-light);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
     color: white;
     border-style: solid;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(75, 62, 196, 0.3);
 }
 
 .btn-add-address i {
-    margin-right: 8px;
+    margin-right: 10px;
+    font-size: 16px;
 }
 
 /* Form Actions */
@@ -544,34 +612,47 @@ textarea {
 .payment-option {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 20px;
+    gap: 18px;
+    padding: 24px;
     border: 2px solid var(--light-border);
-    border-radius: 12px;
+    border-radius: 14px;
     position: relative;
     cursor: pointer;
     transition: var(--transition);
-    background-color: var(--white);
-    margin-bottom: 12px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.95));
+    margin-bottom: 14px;
+    backdrop-filter: blur(10px);
 }
 
 .payment-option:hover {
     border-color: var(--primary-color);
     box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
+    transform: translateY(-3px) scale(1.01);
 }
 
 .payment-option.selected {
     border-color: var(--primary-color);
-    background: linear-gradient(135deg, rgba(75, 62, 196, 0.05), rgba(106, 93, 211, 0.05));
-    box-shadow: 0 4px 20px rgba(75, 62, 196, 0.15);
+    background: linear-gradient(135deg, rgba(75, 62, 196, 0.08), rgba(106, 93, 211, 0.06));
+    box-shadow: 0 6px 20px rgba(75, 62, 196, 0.2);
+}
+
+.payment-option.selected::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, var(--primary-color), var(--primary-light));
+    border-radius: 14px 0 0 14px;
 }
 
 .payment-option input[type="radio"] {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     accent-color: var(--primary-color);
     margin: 0;
+    cursor: pointer;
 }
 
 .payment-info {
@@ -629,13 +710,15 @@ textarea {
 
 /* Order Summary Styles */
 .order-summary {
-    background-color: var(--card-bg);
-    border-radius: 12px;
-    padding: 25px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.95));
+    border-radius: 16px;
+    padding: 28px;
     box-shadow: var(--shadow-md);
     align-self: flex-start;
     position: sticky;
     top: 20px;
+    border: 1px solid rgba(75, 62, 196, 0.1);
+    backdrop-filter: blur(10px);
 }
 
 .summary-header {
@@ -758,17 +841,18 @@ textarea {
 }
 
 .order-total {
-    background-color: var(--light-bg);
-    padding: 20px;
-    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(248, 248, 248, 0.8), rgba(240, 242, 245, 0.8));
+    padding: 24px;
+    border-radius: 12px;
     margin-bottom: 25px;
+    border: 1px solid rgba(75, 62, 196, 0.08);
 }
 
 .total-row {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 10px;
-    font-size: 14px;
+    margin-bottom: 12px;
+    font-size: 15px;
     color: var(--light-text);
 }
 
@@ -776,22 +860,29 @@ textarea {
     margin-bottom: 0;
 }
 
+.total-row span:last-child {
+    font-weight: 600;
+    color: var(--dark-text);
+}
+
 .final-total {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 700;
     color: var(--dark-text);
-    padding-top: 10px;
-    border-top: 1px solid var(--light-border);
-    margin-top: 10px;
+    padding-top: 14px;
+    border-top: 2px solid var(--primary-color);
+    margin-top: 14px;
 }
 
 .final-total span:first-child {
     color: var(--dark-text);
+    letter-spacing: 0.5px;
 }
 
 .total {
     color: var(--primary-color);
-    font-size: 20px;
+    font-size: 24px;
+    font-weight: 800;
 }
 
 .payment-method-summary {
@@ -817,30 +908,54 @@ textarea {
 
 .btn-place-order {
     width: 100%;
-    padding: 15px;
-    background-color: var(--primary-color);
+    padding: 18px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     transition: var(--transition);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
+    box-shadow: 0 6px 20px rgba(75, 62, 196, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-place-order::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-place-order:hover::before {
+    left: 100%;
 }
 
 .btn-place-order:hover {
-    background-color: var(--primary-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(75, 62, 196, 0.25);
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(75, 62, 196, 0.4);
+}
+
+.btn-place-order:active {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(75, 62, 196, 0.35);
 }
 
 .btn-place-order:disabled {
-    background-color: #adb5bd;
+    background: linear-gradient(135deg, #adb5bd, #95999c);
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
+    opacity: 0.6;
 }
 
 /* Notification */
@@ -1310,25 +1425,27 @@ textarea {
 
 /* Voucher Section Styling */
 .voucher-section {
-    border: 1px solid var(--light-border);
-    border-radius: 8px;
-    padding: 15px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 249, 250, 0.8));
-    margin: 15px 0;
+    border: 2px solid var(--light-border);
+    border-radius: 12px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 249, 250, 0.9));
+    margin: 18px 0;
+    backdrop-filter: blur(10px);
 }
 
 .voucher-section .input-group {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(75, 62, 196, 0.1);
+    border-radius: 10px;
     overflow: hidden;
 }
 
 .voucher-section .form-control {
     border: none;
     border-radius: 0;
-    padding: 12px 16px;
+    padding: 14px 18px;
     font-size: 14px;
     background: white;
+    font-weight: 500;
 }
 
 .voucher-section .form-control:focus {
@@ -1341,34 +1458,52 @@ textarea {
     background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
     color: white;
     border-radius: 0;
-    padding: 12px 20px;
-    font-weight: 600;
+    padding: 14px 24px;
+    font-weight: 700;
     transition: var(--transition);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .voucher-section .btn-outline-primary:hover {
     background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(75, 62, 196, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(75, 62, 196, 0.35);
 }
 
 .applied-voucher {
-    border: 1px solid var(--success-color, #28a745);
-    background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(34, 197, 94, 0.05));
-    border-radius: 6px;
+    border: 2px solid var(--success-color, #28a745);
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.12), rgba(34, 197, 94, 0.08));
+    border-radius: 10px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+}
+
+.applied-voucher::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--success-color, #28a745);
 }
 
 .applied-voucher .text-success {
     color: var(--success-color, #28a745) !important;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .applied-voucher .btn-link {
-    color: var(--danger-color, #dc3545) !important;
+    color: var(--error-color, #dc3545) !important;
     text-decoration: none;
-    font-size: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: var(--transition);
 }
 
 .applied-voucher .btn-link:hover {
-    color: var(--danger-dark, #c82333) !important;
+    color: #c82333 !important;
+    transform: scale(1.05);
 }

@@ -124,13 +124,17 @@ function renderProducts(products, container) {
     const viewClass = currentView === 'grid' ? 'products-grid' : 'products-list';
 
     products.forEach(product => {
-        // Get price from first available SKU
-        const skuPrice = product.skus && product.skus.length > 0 ? parseFloat(product.skus[0].price) : null;
+        // Get price from product or first available SKU
+        let price = 0;
+        if (product.price) {
+            price = parseFloat(product.price);
+        } else if (product.skus && product.skus.length > 0) {
+            price = parseFloat(product.skus[0].price);
+        }
 
         // For now, disable discount logic since it's not in the API response
         const hasDiscount = false; // product.discount_percent > 0;
-        const price = skuPrice || 0;
-        const originalPrice = skuPrice || 0;
+        const originalPrice = price;
 
         if (currentView === 'grid') {
             html += `
@@ -147,7 +151,7 @@ function renderProducts(products, container) {
                         <h5><a href="product.html?id=${product.id}">${product.name}</a></h5>
                         <p class="product-category">${product.category?.name || ''}</p>
                         <div class="product-price">
-                            <span class="price">${skuPrice !== null ? '$' + price.toFixed(2) : 'Price not available'}</span>
+                            <span class="price">${price > 0 ? '$' + price.toFixed(2) : 'Price not available'}</span>
                             ${hasDiscount ? `<span class="original-price">$${originalPrice.toFixed(2)}</span>` : ''}
                         </div>
                         <button class="add-to-cart-btn" onclick="addToCart(${product.id})">
@@ -174,7 +178,7 @@ function renderProducts(products, container) {
                         <div class="product-meta">
                             <span class="product-category-list">${product.category?.name || ''}</span>
                             <div class="product-price">
-                                <span class="price">${skuPrice !== null ? '$' + price.toFixed(2) : 'Price not available'}</span>
+                                <span class="price">${price > 0 ? '$' + price.toFixed(2) : 'Price not available'}</span>
                                 ${hasDiscount ? `<span class="original-price">$${originalPrice.toFixed(2)}</span>` : ''}
                             </div>
                             <button class="add-to-cart-btn-list" onclick="addToCart(${product.id})">

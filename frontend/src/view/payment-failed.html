@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop365 - Payment Failed</title>
+    <link rel="icon" href="/images/logo.ico" type="image/vnd.microsoft.icon" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/globals.css">
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .payment-failed-container {
+            text-align: center;
+            padding: 50px 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .failed-icon {
+            font-size: 80px;
+            color: #f44336;
+            margin-bottom: 20px;
+        }
+        
+        .failed-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .failed-message {
+            font-size: 18px;
+            color: #666;
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+        
+        .error-details {
+            background: #fff3f3;
+            border: 1px solid #ffcdd2;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: left;
+        }
+        
+        .error-details p {
+            margin: 10px 0;
+            color: #666;
+        }
+        
+        .error-details strong {
+            color: #333;
+        }
+        
+        .action-buttons {
+            margin-top: 30px;
+        }
+        
+        .action-buttons .btn {
+            margin: 5px;
+            min-width: 150px;
+        }
+    </style>
+</head>
+<body>
+    <div id="header-container"></div>
+
+    <div class="container">
+        <div class="payment-failed-container">
+            <i class="fas fa-times-circle failed-icon"></i>
+            <h1 class="failed-title">Payment Failed</h1>
+            <p class="failed-message">Unfortunately, your payment could not be processed.</p>
+            
+            <div id="error-details" class="error-details">
+                <!-- Error details will be loaded dynamically -->
+            </div>
+
+            <div class="action-buttons">
+                <a href="/checkout" class="btn btn-primary">
+                    <i class="fas fa-redo"></i> Try Again
+                </a>
+                <a href="/" class="btn btn-secondary">
+                    <i class="fas fa-home"></i> Back to Home
+                </a>
+                <a href="/profile" class="btn btn-outline-secondary">
+                    <i class="fas fa-user"></i> View Orders
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div id="footer-container"></div>
+
+    <script src="/js/header.js"></script>
+    <script>
+        fetch('/view/header.html').then(r => r.text()).then(html => {
+            document.getElementById('header-container').innerHTML = html;
+            if (window.headerAPI) window.headerAPI.checkAuthStatus();
+        });
+        fetch('/view/footer.html').then(r => r.text()).then(html => document.getElementById('footer-container').innerHTML = html);
+        
+        // Load error details from URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('order_id');
+        const errorMessage = urlParams.get('message') || 'Payment was cancelled or failed';
+        const reason = urlParams.get('reason');
+        
+        // Build error details HTML
+        let detailsHTML = '';
+        
+        if (orderId) {
+            detailsHTML += `<p><strong>Order ID:</strong> #${orderId}</p>`;
+        }
+        
+        detailsHTML += `<p><strong>Reason:</strong> ${decodeURIComponent(errorMessage)}</p>`;
+        
+        if (reason) {
+            detailsHTML += `<p><strong>Details:</strong> ${reason}</p>`;
+        }
+        
+        detailsHTML += `<p style="margin-top: 20px; color: #999; font-size: 14px;">If you continue to experience issues, please contact our support team.</p>`;
+        
+        document.getElementById('error-details').innerHTML = detailsHTML;
+    </script>
+</body>
+</html>

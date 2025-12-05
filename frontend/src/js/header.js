@@ -111,6 +111,7 @@ async function loadCartCount() {
     const token = localStorage.getItem('authToken');
     if (!token) {
         cartCountElement.textContent = '0';
+        cartCountElement.style.display = 'none';
         return;
     }
 
@@ -122,13 +123,29 @@ async function loadCartCount() {
         });
 
         if (response.ok) {
-            const cartData = await response.json();
-            const itemCount = cartData.items ? cartData.items.length : 0;
-            cartCountElement.textContent = itemCount;
+            const result = await response.json();
+            const cartData = result.data || result;
+            
+            // Sum up all quantities instead of just counting items
+            const totalQuantity = cartData.items ? 
+                cartData.items.reduce((sum, item) => sum + (item.quantity || 0), 0) : 0;
+            
+            cartCountElement.textContent = totalQuantity;
+            
+            // Show/hide badge based on quantity
+            if (totalQuantity > 0) {
+                cartCountElement.style.display = 'flex';
+            } else {
+                cartCountElement.style.display = 'none';
+            }
+        } else {
+            cartCountElement.textContent = '0';
+            cartCountElement.style.display = 'none';
         }
     } catch (error) {
         console.error('Failed to load cart count:', error);
         cartCountElement.textContent = '0';
+        cartCountElement.style.display = 'none';
     }
 }
 

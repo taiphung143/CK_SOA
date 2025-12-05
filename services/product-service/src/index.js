@@ -15,8 +15,8 @@ const app = express();
 app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Set UTF-8 encoding for responses
 app.use((req, res, next) => {
@@ -24,8 +24,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
-app.use('/api/products', categoryRoutes);
+// Routes - Order matters! More specific routes first
+app.use('/api/products/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 
 // Health check

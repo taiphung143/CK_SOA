@@ -10,7 +10,7 @@ class WishlistController {
 
       const wishlist = await Wishlist.findAll({
         where: { user_id: userId },
-        order: [['created_at', 'DESC']]
+        order: [['added_at', 'DESC']]
       });
 
       // Fetch product details (simplified)

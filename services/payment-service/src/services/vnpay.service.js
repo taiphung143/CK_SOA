@@ -3,15 +3,20 @@ const qs = require('qs');
 
 class VNPayService {
   constructor() {
-    this.tmnCode = 'M83AU6J1'; // sandbox cấp cho bạn
-    this.hashSecret = 'HFYYZLP07MHOYFIJ0ABH7AEAMDDMRHIW';
-    this.vnpUrl = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
+    // VNPay Official Demo Credentials (Pre-approved for testing)
+    this.tmnCode = process.env.VNP_TMNCODE || 'RKYAHCG9';
+    this.hashSecret = process.env.VNP_HASHSECRET || 'O7EDQHMSRFFNBF5F6IX6FI65UTHHUP7V';
+    this.vnpUrl = process.env.VNP_URL || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
+    this.returnUrl = process.env.VNP_RETURN_URL || 'http://localhost:8080/order-success.html';
   }
 
-  createPaymentUrl(orderId, amount) {
+  createPaymentUrl(orderId, amount, description = '', ipAddr = '127.0.0.1') {
     const date = new Date();
     const pad = n => n.toString().padStart(2, '0');
     const createDate = `${date.getFullYear()}${pad(date.getMonth()+1)}${pad(date.getDate())}${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+    
+    // Generate unique transaction reference
+    const txnRef = `${orderId}_${Date.now()}`;
 
     let params = {
       vnp_Version: '2.1.0',
@@ -19,11 +24,11 @@ class VNPayService {
       vnp_TmnCode: this.tmnCode,
       vnp_Amount: amount * 100,
       vnp_CurrCode: 'VND',
-      vnp_TxnRef: orderId.toString(),
-      vnp_OrderInfo: `Thanh toan don hang ${orderId}`,
+      vnp_TxnRef: txnRef,
+      vnp_OrderInfo: description || `Thanh toan don hang ${orderId}`,
       vnp_OrderType: 'other',
-      vnp_ReturnUrl: 'http://localhost:3000/order-success.html',
-      vnp_IpAddr: '127.0.0.1',
+      vnp_ReturnUrl: this.returnUrl,
+      vnp_IpAddr: ipAddr,
       vnp_CreateDate: createDate,
       vnp_Locale: 'vn'
     };
@@ -46,7 +51,30 @@ class VNPayService {
     params.vnp_SecureHash = hmac;
 
     const paymentUrl = `${this.vnpUrl}?${qs.stringify(params, { encode: true })}`;
-    return { paymentUrl };
+    return { 
+      paymentUrl,
+      txnRef 
+    };
+  }
+
+  verifyCallback(vnpParams) {
+    const secureHash = vnpParams.vnp_SecureHash;
+    delete vnpParams.vnp_SecureHash;
+    delete vnpParams.vnp_SecureHashType;
+
+    // Sort params alphabetically
+    const sortedParams = Object.keys(vnpParams).sort().reduce((acc, key) => {
+      acc[key] = vnpParams[key];
+      return acc;
+    }, {});
+
+    const signData = qs.stringify(sortedParams, { encode: true });
+    const hmac = crypto
+      .createHmac('sha512', this.hashSecret)
+      .update(Buffer.from(signData, 'utf-8'))
+      .digest('hex');
+
+    return hmac === secureHash;
   }
 }
 

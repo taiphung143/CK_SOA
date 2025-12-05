@@ -122,7 +122,7 @@ function renderProductDetails(product, container) {
                     </div>
 
                     <div class="product-meta">
-                        <p><strong>Category:</strong> ${product.category_name || 'N/A'}</p>
+                        <p><strong>Category:</strong> ${getCategoryDisplay(product)}</p>
                         <p><strong>Availability:</strong> 
                             ${stock > 0 ? 
                                 `<span class="text-success">In Stock (${stock} available)</span>` : 
@@ -140,6 +140,19 @@ function renderProductDetails(product, container) {
     if (product.skus && product.skus.length > 0) {
         selectedSKU = product.skus[0];
     }
+}
+
+// Get category display name
+function getCategoryDisplay(product) {
+    if (product.category) {
+        // If there's a parent category, show "Parent > Subcategory"
+        if (product.category.parent && product.category.parent.name) {
+            return `${product.category.parent.name} > ${product.category.name}`;
+        }
+        // Otherwise just show the category name
+        return product.category.name;
+    }
+    return 'N/A';
 }
 
 // Render SKU options

@@ -3,9 +3,9 @@ const router = express.Router();
 const categoryController = require('../controllers/category.controller');
 
 // Public routes
-router.get('/categories', categoryController.getAllCategories);
-router.get('/categories/:id', categoryController.getCategory);
-router.get('/categories/slug/:slug', categoryController.getCategoryBySlug);
+router.get('/', categoryController.getAllCategories);
+router.get('/:id', categoryController.getCategory);
+router.get('/slug/:slug', categoryController.getCategoryBySlug);
 
 // Admin routes
 router.post('/', categoryController.createCategory);

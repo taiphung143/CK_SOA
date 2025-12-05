@@ -17,12 +17,13 @@ class OrderController {
   async createOrder(req, res, next) {
     try {
       const userId = req.user?.userId || req.headers['x-user-id'];
-      const { shipping_address, payment_method, notes } = req.body;
+      const { shipping_address, payment_method, notes, voucher_code } = req.body;
 
       console.log('========== CREATE ORDER START ==========');
       console.log('User ID:', userId);
       console.log('Request Body:', JSON.stringify(req.body, null, 2));
       console.log('Payment Method:', payment_method);
+      console.log('Voucher Code:', voucher_code);
 
       // Get cart from Cart Service
       console.log('Fetching cart from:', `${CART_SERVICE_URL}/api/cart`);
@@ -42,10 +43,39 @@ class OrderController {
 
       // Calculate totals
       const subtotal = cart.subtotal;
-      const discount_amount = cart.discount || 0;
-      const shipping_fee = 5.00; // Example fixed shipping fee
-      const tax_amount = (subtotal - discount_amount) * 0.1; // 10% tax
-      const total_amount = subtotal - discount_amount + shipping_fee + tax_amount;
+      let discount_amount = cart.discount || 0;
+      const shipping_fee = 0; // Free shipping
+
+      // Apply voucher discount if provided
+      if (voucher_code) {
+        try {
+          const { Voucher } = require('../models');
+          const voucher = await Voucher.findOne({
+            where: { code: voucher_code.toUpperCase() }
+          });
+
+          if (voucher) {
+            const now = new Date();
+            const isActive = (!voucher.start_at || now >= voucher.start_at) && 
+                           (!voucher.end_at || now <= voucher.end_at);
+            
+            if (isActive) {
+              const voucherDiscount = (subtotal * voucher.discount_percent) / 100;
+              discount_amount += voucherDiscount;
+              console.log(`✅ Voucher applied: ${voucher_code}, Discount: $${voucherDiscount.toFixed(2)}`);
+            } else {
+              console.log(`⚠️ Voucher ${voucher_code} is not active`);
+            }
+          } else {
+            console.log(`⚠️ Voucher ${voucher_code} not found`);
+          }
+        } catch (error) {
+          console.error('❌ Failed to apply voucher:', error.message);
+        }
+      }
+
+      const tax_amount = 0; // No tax
+      const total_amount = Math.max(0, subtotal - discount_amount + shipping_fee + tax_amount);
 
       console.log('Order Calculations:');
       console.log('- Subtotal:', subtotal);
@@ -172,10 +202,12 @@ class OrderController {
   async getOrders(req, res, next) {
     try {
       const userId = req.user?.userId || req.headers['x-user-id'];
+      const isAdminUser = req.user?.isAdmin || req.headers['x-is-admin'] === 'true';
       const { page = 1, limit = 10, status } = req.query;
       const offset = (page - 1) * limit;
 
-      const whereClause = { user_id: userId };
+      // Admin can view all orders, regular users can only view their own orders
+      const whereClause = isAdminUser ? {} : { user_id: userId };
       if (status) whereClause.status = status;
 
       const { count, rows } = await Order.findAndCountAll({
@@ -206,10 +238,14 @@ class OrderController {
   async getOrder(req, res, next) {
     try {
       const userId = req.user?.userId || req.headers['x-user-id'];
+      const isAdminUser = req.user?.isAdmin || req.headers['x-is-admin'] === 'true';
       const { id } = req.params;
 
+      // Admin can view any order, regular users can only view their own orders
+      const whereClause = isAdminUser ? { id } : { id, user_id: userId };
+
       const order = await Order.findOne({
-        where: { id, user_id: userId },
+        where: whereClause,
         include: [{ model: OrderItem, as: 'items' }]
       });
 
@@ -314,10 +350,23 @@ class OrderController {
         });
       }
 
+      // Determine order status based on payment status
+      let newOrderStatus = order.status;
+      if (payment_status === 'paid') {
+        newOrderStatus = 'processing';
+      } else if (payment_status === 'failed') {
+        // Only update to cancelled if order is still pending
+        if (order.status === 'pending') {
+          newOrderStatus = 'cancelled';
+        }
+      }
+
       await order.update({ 
         payment_status,
-        status: payment_status === 'paid' ? 'processing' : order.status
+        status: newOrderStatus
       });
+
+      console.log(`✅ Order ${id} status updated: payment_status=${payment_status}, status=${newOrderStatus}`);
 
       res.json({
         success: true,

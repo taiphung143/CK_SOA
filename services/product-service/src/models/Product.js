@@ -22,7 +22,7 @@ const Product = sequelize.define('Product', {
   },
   category_id: {
     type: DataTypes.INTEGER,
-    allowNull: true,
+    allowNull: false,
     references: {
       model: 'sub_categories',
       key: 'id'
@@ -30,7 +30,7 @@ const Product = sequelize.define('Product', {
   },
   sub_category_id: {
     type: DataTypes.INTEGER,
-    allowNull: true,
+    allowNull: false,
     references: {
       model: 'sub_categories',
       key: 'id'
@@ -61,10 +61,6 @@ const Product = sequelize.define('Product', {
   discount_percent: {
     type: DataTypes.DECIMAL(5, 2),
     defaultValue: 0
-  },
-  sub_category_id: {
-    type: DataTypes.INTEGER,
-    allowNull: true
   }
 }, {
   tableName: 'products',

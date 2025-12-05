@@ -163,14 +163,17 @@ services:
       - DB_USER=root
       - DB_PASS=password
       - ORDER_SERVICE_URL=http://order-service:3004
-      - VNP_TMN_CODE=${VNP_TMN_CODE}
-      - VNP_HASH_SECRET=${VNP_HASH_SECRET}
+      - VNP_TMNCODE=DEMOV210
+      - VNP_HASHSECRET=RAOEXHYVSDDIIENYWSLDIIZTANXUXZFJ
       - VNP_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-      - VNP_RETURN_URL=${VNP_RETURN_URL}
-      - VNP_IPN_URL=${VNP_IPN_URL}
-      - MOMO_PARTNER_CODE=${MOMO_PARTNER_CODE}
-      - MOMO_ACCESS_KEY=${MOMO_ACCESS_KEY}
-      - MOMO_SECRET_KEY=${MOMO_SECRET_KEY}
+      - VNP_RETURN_URL=http://localhost:8080/order-success.html
+      - VNP_IPN_URL=http://localhost:3000/api/payments/vnpay/ipn
+      - MOMO_PARTNER_CODE=MOMOBKUN20180529
+      - MOMO_ACCESS_KEY=klm05TvNBzhg7h7j
+      - MOMO_SECRET_KEY=at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa
+      - MOMO_ENDPOINT=https://test-payment.momo.vn/v2/gateway/api/create
+      - MOMO_REDIRECT_URL=http://localhost:3000/api/payments/momo/callback
+      - MOMO_IPN_URL=http://localhost:3000/api/payments/momo/ipn
       - FRONTEND_URL=http://localhost:8080
     depends_on:
       - mysql

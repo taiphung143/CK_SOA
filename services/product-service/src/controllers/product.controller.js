@@ -144,6 +144,16 @@ class ProductController {
         skus
       } = req.body;
 
+      console.log('Creating product with data:', {
+        category_id,
+        sub_category_id,
+        name,
+        description,
+        description_2,
+        image_thumbnail,
+        is_featured
+      });
+
       const product = await Product.create({
         category_id,
         sub_category_id,
@@ -151,8 +161,13 @@ class ProductController {
         description,
         description_2,
         image_thumbnail,
-        is_featured: is_featured || false
+        is_featured: is_featured || false,
+        active: true
+      }, {
+        fields: ['category_id', 'sub_category_id', 'name', 'description', 'description_2', 'image_thumbnail', 'is_featured', 'active']
       });
+
+      console.log('✅ Product created with ID:', product.id);
 
       // Create SKUs if provided
       if (skus && skus.length > 0) {
@@ -161,6 +176,7 @@ class ProductController {
           product_id: product.id
         }));
         await ProductSKU.bulkCreate(skuData);
+        console.log(`✅ Created ${skuData.length} SKUs for product ${product.id}`);
       }
 
       res.status(201).json({
@@ -169,6 +185,7 @@ class ProductController {
         data: product
       });
     } catch (error) {
+      console.error('❌ Product creation error:', error);
       next(error);
     }
   }

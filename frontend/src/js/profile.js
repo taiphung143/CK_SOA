@@ -89,7 +89,7 @@ function renderProfile(user, container) {
             <!-- Sidebar -->
             <div class="profile-sidebar">
                 <div class="profile-img">
-                    <img src="/images/default-avatar.png" alt="Profile Picture">
+                    <img src="${user.avatar}" alt="Profile Picture">
                 </div>
                 <div class="profile-name">${user.name || user.username}</div>
                 <div class="profile-email">${user.email}</div>
