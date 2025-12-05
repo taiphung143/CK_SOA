@@ -282,14 +282,14 @@ function renderCheckout() {
                         </div>
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="radio" name="paymentMethod" id="vnpay" value="vnpay" onchange="selectPaymentMethod('vnpay')">
-                            <label class="form-check-label" for="vnpay">
-                                <i class="fas fa-wallet"></i> VNPay
+                            <label class="form-check-label d-flex align-items-center" for="vnpay">
+                                <img src="../images/vnpay.png" alt="VNPay" style="height: 24px; margin-right: 8px;"> VNPay
                             </label>
                         </div>
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="radio" name="paymentMethod" id="momo" value="momo" onchange="selectPaymentMethod('momo')">
-                            <label class="form-check-label" for="momo">
-                                <i class="fas fa-mobile-alt"></i> MoMo Wallet
+                            <label class="form-check-label d-flex align-items-center" for="momo">
+                                <img src="../images/momo.png" alt="MoMo" style="height: 24px; margin-right: 8px;"> MoMo Wallet
                             </label>
                         </div>
                     </div>
