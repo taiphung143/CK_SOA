@@ -9,6 +9,17 @@ body {
     background-color: #f8f9fa;
 }
 
+/* Product Section - Equal Height Columns */
+.product-section .row {
+    display: flex;
+    align-items: stretch;
+}
+
+.product-section .row > [class*='col-'] {
+    display: flex;
+    flex-direction: column;
+}
+
 /* Breadcrumb */
 .breadcrumb-product {
     margin-top: 20px;
@@ -45,6 +56,10 @@ body {
     background-color: #fff;
     padding: 20px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
 }
 
 .main-product-image {
@@ -61,6 +76,10 @@ body {
     padding: 30px;
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
 }
 
 .product-details h1 {
@@ -121,6 +140,8 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
+    /* Đổi từ center sang flex-start để căn trái các nút chọn phiên bản */
+    justify-content: flex-start; 
 }
 
 .sku-options button {
@@ -152,37 +173,80 @@ body {
 }
 
 /* Quantity Selector */
-.quantity-selector h5 {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 15px;
-    color: #000;
-}
-
-.input-group {
+.quantity-selector {
+    margin-bottom: 20px;
     display: flex;
     align-items: center;
+    gap: 15px;
 }
 
-.input-group button {
-    padding: 8px 12px;
-    border: 1px solid #ced4da;
-    background-color: #f8f9fa;
-    color: #000;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.input-group button:hover {
-    background-color: #e9ecef;
-}
-
-.input-group input {
-    text-align: center;
-    border-left: none;
-    border-right: none;
+.quantity-selector h5 {
+    font-size: 16px;
     font-weight: 600;
+    margin-bottom: 0;
+    color: #000;
+}
+
+.quantity-selector .input-group {
+    display: inline-flex;
+    align-items: center;
+    background: #ffffff;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    width: fit-content;
+}
+
+.quantity-selector .input-group:hover {
+    border-color: #4B3EC4;
+    box-shadow: 0 3px 8px rgba(75, 62, 196, 0.12);
+}
+
+.quantity-selector .input-group button {
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4B3EC4;
+    font-size: 16px;
+    font-weight: 700;
+    transition: all 0.2s ease;
+    background: #f8f9fa;
+    border: none;
+    user-select: none;
+}
+
+.quantity-selector .input-group button:hover {
+    background: #4B3EC4;
+    color: #fff;
+}
+
+.quantity-selector .input-group button:active {
+    transform: scale(0.95);
+}
+
+.quantity-selector .input-group input {
     width: 60px;
+    text-align: center;
+    border: none;
+    border-left: 1px solid #e9ecef;
+    border-right: 1px solid #e9ecef;
+    font-weight: 600;
+    font-size: 16px;
+    color: #000;
+    background: #fff;
+    padding: 8px 5px;
+    outline: none;
+}
+
+.quantity-selector .input-group input::-webkit-inner-spin-button,
+.quantity-selector .input-group input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 /* Product Actions */
@@ -190,6 +254,8 @@ body {
     display: flex;
     gap: 15px;
     margin-bottom: 30px;
+    /* Đổi từ center sang flex-start để căn trái nút Mua hàng */
+    justify-content: flex-start; 
 }
 
 .product-actions button {
@@ -258,16 +324,6 @@ body {
     .sku-options {
         justify-content: center;
     }
-}
-    top: 20px;
-    left: 20px;
-    background-color: #222;
-    color: #fff;
-    font-size: 10px;
-    text-transform: uppercase;
-    padding: 5px 10px;
-    border-radius: 5px;
-    z-index: 1;
 }
 
 .icon-favorites {
@@ -547,59 +603,6 @@ body {
 .affirm span {
     font-size: 12px;
     color: #000;
-}
-
-.quantity-selector {
-    display: flex;
-    align-items: center;
-    background: #ffffff;
-    border: 2px solid #e9ecef;
-    border-radius: 12px;
-    margin-bottom: 20px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    transition: all 0.3s ease;
-}
-
-.quantity-selector:hover {
-    border-color: #4B3EC4;
-    box-shadow: 0 4px 12px rgba(75, 62, 196, 0.15);
-}
-
-.quantity-selector span {
-    cursor: pointer;
-    width: 45px;
-    height: 45px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #4B3EC4;
-    font-size: 18px;
-    font-weight: 700;
-    transition: all 0.3s ease;
-    background: #f8f9fa;
-}
-
-.quantity-selector span:hover {
-    background: linear-gradient(135deg, #4B3EC4 0%, #5a4fcf 100%);
-    color: #fff;
-    transform: scale(1.05);
-}
-
-.quantity-selector span:active {
-    transform: scale(0.95);
-}
-
-.quantity-selector input {
-    flex: 1;
-    text-align: center;
-    border: none;
-    font-weight: 700;
-    font-size: 16px;
-    color: #000;
-    background: #fff;
-    padding: 10px;
-    min-width: 60px;
 }
 
 .btn-add-cart,
