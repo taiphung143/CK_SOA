@@ -91,6 +91,32 @@ class VoucherController {
     }
   }
 
+  // Get single voucher (admin only)
+  async getVoucher(req, res) {
+    try {
+      const { id } = req.params;
+      const voucher = await Voucher.findByPk(id);
+
+      if (!voucher) {
+        return res.status(404).json({
+          success: false,
+          message: 'Voucher not found'
+        });
+      }
+
+      res.json({
+        success: true,
+        voucher: voucher
+      });
+    } catch (error) {
+      console.error('Get voucher error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get voucher'
+      });
+    }
+  }
+
   // Create voucher (admin only)
   async createVoucher(req, res) {
     try {

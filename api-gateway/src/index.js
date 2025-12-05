@@ -49,6 +49,26 @@ const proxyOptions = (serviceName) => ({
     console.log('Content-Length:', req.headers['content-length']);
     console.log('Content-Type:', req.headers['content-type']);
     console.log('Authorization header present:', !!req.headers['authorization']);
+    
+    // Extract userId and role from JWT and add as headers
+    if (req.headers.authorization) {
+      try {
+        const token = req.headers.authorization.replace('Bearer ', '');
+        const decoded = require('jsonwebtoken').decode(token);
+        if (decoded) {
+          if (decoded.userId) {
+            proxyReq.setHeader('x-user-id', decoded.userId.toString());
+            console.log('Extracted user ID from JWT:', decoded.userId);
+          }
+          if (decoded.role) {
+            proxyReq.setHeader('x-user-role', decoded.role);
+            console.log('Extracted user role from JWT:', decoded.role);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to decode JWT:', err.message);
+      }
+    }
   },
   onProxyRes: (proxyRes, req, res) => {
     console.log(`[${new Date().toISOString()}] Response from ${serviceName}: ${proxyRes.statusCode}`);
@@ -264,13 +284,19 @@ app.post('/api/orders', async (req, res) => {
     if (req.headers.authorization) {
       headers['Authorization'] = req.headers.authorization;
       
-      // Parse JWT to get userId
+      // Parse JWT to get userId and role
       try {
         const token = req.headers.authorization.replace('Bearer ', '');
         const decoded = require('jsonwebtoken').decode(token);
-        if (decoded && decoded.userId) {
-          headers['x-user-id'] = decoded.userId.toString();
-          console.log('Extracted user ID from JWT:', decoded.userId);
+        if (decoded) {
+          if (decoded.userId) {
+            headers['x-user-id'] = decoded.userId.toString();
+            console.log('Extracted user ID from JWT:', decoded.userId);
+          }
+          if (decoded.role) {
+            headers['x-user-role'] = decoded.role;
+            console.log('Extracted user role from JWT:', decoded.role);
+          }
         }
       } catch (err) {
         console.error('Failed to decode JWT:', err.message);
@@ -280,6 +306,11 @@ app.post('/api/orders', async (req, res) => {
     // Forward x-user-id if present (from JWT middleware)
     if (req.headers['x-user-id']) {
       headers['x-user-id'] = req.headers['x-user-id'];
+    }
+    
+    // Forward x-user-role if present
+    if (req.headers['x-user-role']) {
+      headers['x-user-role'] = req.headers['x-user-role'];
     }
     
     console.log('Forwarding to:', `${SERVICES.order}/api/orders`);
@@ -313,13 +344,19 @@ app.get('/api/orders', async (req, res) => {
     if (req.headers.authorization) {
       headers['Authorization'] = req.headers.authorization;
       
-      // Parse JWT to get userId
+      // Parse JWT to get userId and role
       try {
         const token = req.headers.authorization.replace('Bearer ', '');
         const decoded = require('jsonwebtoken').decode(token);
-        if (decoded && decoded.userId) {
-          headers['x-user-id'] = decoded.userId.toString();
-          console.log('Extracted user ID from JWT:', decoded.userId);
+        if (decoded) {
+          if (decoded.userId) {
+            headers['x-user-id'] = decoded.userId.toString();
+            console.log('Extracted user ID from JWT:', decoded.userId);
+          }
+          if (decoded.role) {
+            headers['x-user-role'] = decoded.role;
+            console.log('Extracted user role from JWT:', decoded.role);
+          }
         }
       } catch (err) {
         console.error('Failed to decode JWT:', err.message);
@@ -329,6 +366,11 @@ app.get('/api/orders', async (req, res) => {
     // Forward x-user-id if present (from JWT middleware)
     if (req.headers['x-user-id']) {
       headers['x-user-id'] = req.headers['x-user-id'];
+    }
+    
+    // Forward x-user-role if present
+    if (req.headers['x-user-role']) {
+      headers['x-user-role'] = req.headers['x-user-role'];
     }
     
     console.log('Forwarding to:', `${SERVICES.order}/api/orders`);
@@ -362,13 +404,19 @@ app.get('/api/orders/:id', async (req, res) => {
     if (req.headers.authorization) {
       headers['Authorization'] = req.headers.authorization;
       
-      // Parse JWT to get userId
+      // Parse JWT to get userId and role
       try {
         const token = req.headers.authorization.replace('Bearer ', '');
         const decoded = require('jsonwebtoken').decode(token);
-        if (decoded && decoded.userId) {
-          headers['x-user-id'] = decoded.userId.toString();
-          console.log('Extracted user ID from JWT:', decoded.userId);
+        if (decoded) {
+          if (decoded.userId) {
+            headers['x-user-id'] = decoded.userId.toString();
+            console.log('Extracted user ID from JWT:', decoded.userId);
+          }
+          if (decoded.role) {
+            headers['x-user-role'] = decoded.role;
+            console.log('Extracted user role from JWT:', decoded.role);
+          }
         }
       } catch (err) {
         console.error('Failed to decode JWT:', err.message);
@@ -380,6 +428,11 @@ app.get('/api/orders/:id', async (req, res) => {
       headers['x-user-id'] = req.headers['x-user-id'];
     }
     
+    // Forward x-user-role if present
+    if (req.headers['x-user-role']) {
+      headers['x-user-role'] = req.headers['x-user-role'];
+    }
+    
     console.log('Forwarding to:', `${SERVICES.order}/api/orders/${req.params.id}`);
     const response = await axios.get(`${SERVICES.order}/api/orders/${req.params.id}`, {
       headers,
@@ -389,6 +442,67 @@ app.get('/api/orders/:id', async (req, res) => {
     return res.status(response.status).json(response.data);
   } catch (error) {
     console.error(`[${new Date().toISOString()}] ❌ Get order details proxy error:`, error.message);
+    if (error.response) {
+      console.error('Error response:', error.response.status, error.response.data);
+      return res.status(error.response.status).json(error.response.data);
+    } else {
+      return res.status(502).json({ success: false, message: 'Service unavailable', detail: error.message });
+    }
+  }
+});
+
+app.put('/api/orders/:id/status', async (req, res) => {
+  console.log(`[${new Date().toISOString()}] ✅ Manual proxy route HIT: PUT /api/orders/${req.params.id}/status`);
+  console.log('Request body:', JSON.stringify(req.body, null, 2));
+  console.log('Authorization header:', req.headers.authorization ? 'Present' : 'Missing');
+  
+  try {
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+    
+    // Forward authorization header if present
+    if (req.headers.authorization) {
+      headers['Authorization'] = req.headers.authorization;
+      
+      // Parse JWT to get userId and role
+      try {
+        const token = req.headers.authorization.replace('Bearer ', '');
+        const decoded = require('jsonwebtoken').decode(token);
+        if (decoded) {
+          if (decoded.userId) {
+            headers['x-user-id'] = decoded.userId.toString();
+            console.log('Extracted user ID from JWT:', decoded.userId);
+          }
+          if (decoded.role) {
+            headers['x-user-role'] = decoded.role;
+            console.log('Extracted user role from JWT:', decoded.role);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to decode JWT:', err.message);
+      }
+    }
+    
+    // Forward x-user-id if present (from JWT middleware)
+    if (req.headers['x-user-id']) {
+      headers['x-user-id'] = req.headers['x-user-id'];
+    }
+    
+    // Forward x-user-role if present
+    if (req.headers['x-user-role']) {
+      headers['x-user-role'] = req.headers['x-user-role'];
+    }
+    
+    console.log('Forwarding to:', `${SERVICES.order}/api/orders/${req.params.id}/status`);
+    const response = await axios.put(`${SERVICES.order}/api/orders/${req.params.id}/status`, req.body, {
+      headers,
+      timeout: 30000
+    });
+    console.log(`[${new Date().toISOString()}] ✅ Got response from order-service: ${response.status}`);
+    return res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] ❌ Update order status proxy error:`, error.message);
     if (error.response) {
       console.error('Error response:', error.response.status, error.response.data);
       return res.status(error.response.status).json(error.response.data);
@@ -599,11 +713,12 @@ app.post('/api/vouchers/validate', async (req, res) => {
 });
 
 // Voucher routes (handled by order service)
-app.use('/api/vouchers', (req, res, next) => {
-  // Rewrite the path to include /orders prefix
-  req.url = '/orders' + req.url;
-  next();
-}, createProxyMiddleware(proxyOptions('order')));
+app.use('/api/vouchers', createProxyMiddleware({
+  ...proxyOptions('order'),
+  pathRewrite: {
+    '^/api/vouchers': '/api/orders/vouchers'
+  }
+}));
 
 // Payment Service routes
 app.use('/api/payments', createProxyMiddleware(proxyOptions('payment')));

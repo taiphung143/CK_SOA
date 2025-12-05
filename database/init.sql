@@ -37,7 +37,9 @@ INSERT INTO users (id, avatar, name, username, email, password, birth, phone_num
 (1, 'images/avatars/1_1751557568_share-poster-1749998037227.jpg', 'Tai The Phung', 'taiphung143', 'taiphung143@gmail.com', '$2y$12$nABXTUHDb.J8fOt8g7yAs.M8pMGkYb9beSlt0YLekS9HwDhdnMNXK', '2005-03-14', '0335526427', 1, 'admin', '2025-04-17 17:41:18', '2025-04-17 17:39:11'),
 (7, 'images/avatars/7_1748276672_doge.jpg', 'buithai son', 'buithaison', 'bts18062005@gmail.com', '$2y$12$.YD6Rfovsl6I6/a/Nh2ngegSDDZmP74y21lJSYfjB9dg0l87g04r2', NULL, '', 1, 'admin', '2025-04-20 12:56:39', '2025-04-20 12:56:17'),
 (16, '', 'The Taii Phung222', 'uhuwfmi223', 'phungtai143@gmail.com', '$2y$12$gCccRyDA1PPq11Ks0wmqKudyZXTw5K3nNr2Nf/6myDFZ1kh7v6Kiu', NULL, '', 1, 'user', NULL, '2025-05-24 14:23:56'),
-(19, 'images/avatars/19_1751787058_Ảnh màn hình 2025-06-21 lúc 11.24.40.png', 'The Tai', 'taiphungshopee1', 'taiphungshopee1@gmail.com', '$2y$12$Te6WlxlxTPjxwOSIBpoiWew7XzgKbn7RZbD.YUzoZX27snkjBsgxS', '2025-05-15', '0123456789', 1, 'user', '2025-05-26 15:51:53', '2025-05-26 15:51:26');
+(19, 'images/avatars/19_1751787058_Ảnh màn hình 2025-06-21 lúc 11.24.40.png', 'The Tai', 'taiphungshopee1', 'taiphungshopee1@gmail.com', '$2y$12$Te6WlxlxTPjxwOSIBpoiWew7XzgKbn7RZbD.YUzoZX27snkjBsgxS', '2025-05-15', '0123456789', 1, 'user', '2025-05-26 15:51:53', '2025-05-26 15:51:26'),
+(28, '', 'Test User', 'testuser', 'testuser@test.com', '$2y$12$testpasswordhash', NULL, '1234567890', 1, 'user', NULL, '2025-11-24 06:05:49'),
+(30, '', 'User Thirty', 'user30', 'user30@test.com', '$2y$12$testpasswordhash', NULL, '9876543210', 1, 'user', NULL, '2025-11-24 17:46:00');
 
 -- User tokens table
 CREATE TABLE IF NOT EXISTS user_tokens (
@@ -58,7 +60,9 @@ INSERT INTO user_tokens (user_id, token, type, is_used, created_at, expires_at) 
 (1, '8284b8a2b61cc5e3c7124bb8c86ff94e', 'verification', 1, '2025-04-17 17:39:12', '2025-04-18 17:39:12'),
 (7, '445eaa81e06d9b297e4978ac89dba60d', 'verification', 1, '2025-04-20 12:56:17', '2025-04-21 12:56:17'),
 (16, '023e8a8bd7cdf80c3fc4f51dcf038e91', 'verification', 0, '2025-05-24 14:23:56', '2025-05-25 14:23:56'),
-(19, '20e3c5e74a0c70b0c417b54dc2242a48', 'verification', 1, '2025-05-26 15:51:26', '2025-05-27 15:51:26');
+(19, '20e3c5e74a0c70b0c417b54dc2242a48', 'verification', 1, '2025-05-26 15:51:26', '2025-05-27 15:51:26'),
+(28, '28testverificationtokenhash', 'verification', 1, '2025-11-24 06:05:49', '2025-11-25 06:05:49'),
+(30, '30testverificationtokenhash', 'verification', 1, '2025-11-24 17:46:00', '2025-11-25 17:46:00');
 
 -- Addresses table
 CREATE TABLE IF NOT EXISTS addresses (
@@ -79,12 +83,12 @@ CREATE TABLE IF NOT EXISTS addresses (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Insert addresses
-INSERT INTO addresses (id, user_id, recipient_name, phone, street_address, city, state, postal_code, country, is_default, created_at) VALUES
-(1, 1, 'Tai The Phung', '0947334392', '48/4 Le Duan Street, An Lac Su', 'Dak Lak Province', 'aj', '634700', 'Vietnam', 0, '2025-04-17 18:35:27'),
-(6, 7, '1', '1', '1', '1', '1', '1', 'Vietnam', 0, '2025-05-14 09:32:29'),
-(7, 1, 'Tai The Phung', '0947334392', '48/4 Le Duan Street, An Lac Su', 'Dak Lak Province', 'aj', '634700', 'Vietnam', 0, '2025-05-24 05:48:55'),
-(14, 1, 'Tai The Phung', '0947334392', '48/4 Le Duan Street, An Lac Su', 'Dak Lak Province', 'aj', '634700', 'Vietnam', 0, '2025-05-24 14:44:13'),
-(16, 19, 'The Tai', '0123456789', '123', 'HCM', 'Q7', '634700', 'Vietnam', 0, '2025-05-26 15:54:15');
+INSERT INTO addresses (id, user_id, recipient_name, phone, street_address, city, state, postal_code, country, is_default, created_at, updated_at) VALUES
+(1, 1, 'Tai The Phung', '0947334392', '48/4 Le Duan Street, An Lac Su', 'Dak Lak Province', 'aj', '634700', 'Vietnam', 0, '2025-04-17 18:35:27', '2025-11-23 16:21:49'),
+(6, 7, '1', '1', '1', '1', '1', '1', 'Vietnam', 0, '2025-05-14 09:32:29', '2025-11-23 16:21:49'),
+(7, 1, 'Tai The Phung', '0947334392', '48/4 Le Duan Street, An Lac Su', 'Dak Lak Province', 'aj', '634700', 'Vietnam', 0, '2025-05-24 05:48:55', '2025-11-23 16:21:49'),
+(17, 1, 'Tai The Phung', '0947334392', '48/4 Le Duan Street, An Lac Su', 'Dak Lak Province', 'aj', '634700', 'Vietnam', 0, '2025-11-23 17:02:10', '2025-11-24 03:02:30'),
+(18, 28, 'Test User', '1234567890', '123 Test Street', 'Test City', 'Test State', '12345', 'Test Country', 0, '2025-11-24 06:05:49', '2025-11-24 06:05:49');
 
 -- Contacts table
 CREATE TABLE IF NOT EXISTS contacts (
@@ -136,16 +140,16 @@ CREATE TABLE IF NOT EXISTS categories (
 
 -- Insert categories
 INSERT INTO categories (id, name, slug, description, image, active, created_at, updated_at) VALUES
-(1, 'Electronics', 'electronics', 'Smartphones, laptops, and tech gadgets', 'https://down-vn.img.susercontent.com/file/978b9e4cb61c611aaaf58664fae133c5@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:04:09'),
-(2, 'Fashion', 'fashion', 'Clothing, shoes, and accessories for all', 'https://down-vn.img.susercontent.com/file/75ea42f9eca124e9cb3cde744c060e4d@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:04:27'),
-(3, 'Home & Living', 'home-living', 'Furniture, decor, kitchen & more', 'https://down-vn.img.susercontent.com/file/24b194a695ea59d384768b7b471d563f@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:06:07'),
-(4, 'Beauty & Personal Care', 'beauty-personal-care', 'Cosmetics, skincare, grooming', 'https://down-vn.img.susercontent.com/file/ef1f336ecc6f97b790d5aae9916dcb72@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:03:06'),
-(5, 'Sports & Outdoors', 'sports-outdoors', 'Fitness equipment, outdoor gear', 'https://down-vn.img.susercontent.com/file/6cb7e633f8b63757463b676bd19a50e4@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:06:20'),
-(6, 'Toys & Games', 'toys-games', 'Toys for kids, board games & hobbies', 'https://down-vn.img.susercontent.com/file/ce8f8abc726cafff671d0e5311caa684@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:06:00'),
-(7, 'Books & Stationery', 'books-stationery', 'Books, journals, school & office supplies', 'https://down-vn.img.susercontent.com/file/36013311815c55d303b0e6c62d6a8139@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:03:14'),
-(8, 'Automotive', 'automotive', 'Car accessories, tools, and parts', 'https://down-vn.img.susercontent.com/file/3fb459e3449905545701b418e8220334@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:00:39'),
-(9, 'Groceries', 'groceries', 'Food, beverages, and daily essentials', 'https://down-vn.img.susercontent.com/file/c432168ee788f903f1ea024487f2c889@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:04:37'),
-(10, 'Pet Supplies', 'pet-supplies', 'Pet food, toys, grooming & more', 'https://down-vn.img.susercontent.com/file/cdf21b1bf4bfff257efe29054ecea1ec@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-05-24 08:06:15');
+(1, 'Electronics', 'electronics', 'Smartphones, laptops, and tech gadgets', 'https://down-vn.img.susercontent.com/file/978b9e4cb61c611aaaf58664fae133c5@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-11-23 12:37:19'),
+(2, 'Fashion', 'fashion', 'Clothing, shoes, and accessories for all', 'https://down-vn.img.susercontent.com/file/75ea42f9eca124e9cb3cde744c060e4d@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-11-23 12:37:19'),
+(3, 'Home & Living', 'home-and-living', 'Furniture, decor, kitchen & more', 'https://down-vn.img.susercontent.com/file/24b194a695ea59d384768b7b471d563f@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-11-23 12:37:19'),
+(4, 'Beauty & Personal Care', 'beauty-and-personal-care', 'Cosmetics, skincare, grooming', 'https://down-vn.img.susercontent.com/file/ef1f336ecc6f97b790d5aae9916dcb72@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-11-23 12:37:19'),
+(5, 'Sports & Outdoors', 'sports-and-outdoors', 'Fitness equipment, outdoor gear', 'https://down-vn.img.susercontent.com/file/6cb7e633f8b63757463b676bd19a50e4@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-11-23 12:37:19'),
+(6, 'Toys & Games', 'toys-and-games', 'Toys for kids, board games & hobbies', 'https://down-vn.img.susercontent.com/file/ce8f8abc726cafff671d0e5311caa684@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-11-23 12:37:19'),
+(7, 'Books & Stationery', 'books-and-stationery', 'Books, journals, school & office supplies', 'https://down-vn.img.susercontent.com/file/36013311815c55d303b0e6c62d6a8139@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-11-23 12:37:19'),
+(8, 'Automotive', 'automotive', 'Car accessories, tools, and parts', 'https://down-vn.img.susercontent.com/file/3fb459e3449905545701b418e8220334@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-11-23 12:37:19'),
+(9, 'Groceries', 'groceries', 'Food, beverages, and daily essentials', 'https://down-vn.img.susercontent.com/file/c432168ee788f903f1ea024487f2c889@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-11-23 12:37:19'),
+(10, 'Pet Supplies', 'pet-supplies', 'Pet food, toys, grooming & more', 'https://down-vn.img.susercontent.com/file/cdf21b1bf4bfff257efe29054ecea1ec@resize_w320_nl.webp', 1, '2025-04-18 03:19:09', '2025-11-23 12:37:19');
 
 -- Sub-categories table
 CREATE TABLE IF NOT EXISTS sub_categories (
@@ -184,10 +188,10 @@ CREATE TABLE IF NOT EXISTS products (
     is_featured TINYINT(1) DEFAULT 0,
     active TINYINT(1) DEFAULT 1,
     view_count INT DEFAULT 0,
-    base_price DECIMAL(10, 2) DEFAULT NULL,
-    discount_percent DECIMAL(5, 2) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    base_price DECIMAL(10, 2) DEFAULT NULL,
+    discount_percent DECIMAL(5, 2) DEFAULT 0.00,
     FOREIGN KEY (category_id) REFERENCES sub_categories(id) ON DELETE SET NULL,
     FOREIGN KEY (sub_category_id) REFERENCES sub_categories(id) ON DELETE SET NULL,
     INDEX idx_category (category_id),
@@ -196,10 +200,9 @@ CREATE TABLE IF NOT EXISTS products (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Insert products (sample - add all 59 products)
--- Insert products (sample - add all 59 products)
-INSERT INTO products (id, name, description, description_2, category_id, sub_category_id, image_thumbnail, is_featured, active, view_count, base_price, discount_percent, created_at, updated_at) VALUES
-(1, 'iPhone 15 Pro Max', 'Latest flagship from Apple with advanced camera system', 'Display: 6.7-inch Super Retina XDR OLED, Processor: A17 Pro chip', 1, 1, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-llxe7xfysdlr0a_tn.webp', 1, 1, 0, 30000000.00, 0, '2025-04-18 05:19:10', '2025-04-27 05:41:25'),
-(2, 'Samsung Galaxy S24 Ultra', 'High-end Android phone with a powerful zoom lens', 'Snapdragon 8 Gen 3, S-Pen support', 1, 1, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ly21iyd2f5y3bf@res', 1, 1, 0, 1199.99, 0, '2025-04-18 05:19:10', '2025-04-20 08:03:42');
+INSERT INTO products (id, name, description, description_2, category_id, sub_category_id, image_thumbnail, is_featured, active, view_count, created_at, updated_at, base_price, discount_percent) VALUES
+(1, 'iPhone 15 Pro Max', 'Latest flagship from Apple with advanced camera system', 'Display: 6.7-inch Super Retina XDR OLED, Processor: A17 Pro chip', 1, 1, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-llxe7xfysdlr0a_tn.webp', 1, 1, 0, '2025-04-18 05:19:10', '2025-04-27 05:41:25', 30000000.00, 0),
+(2, 'Samsung Galaxy S24 Ultra', 'High-end Android phone with a powerful zoom lens', 'Snapdragon 8 Gen 3, S-Pen support', 1, 1, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ly21iyd2f5y3bf@res', 1, 1, 0, '2025-04-18 05:19:10', '2025-04-20 08:03:42', 1199.99, 0);
 
 -- Product SKUs table
 CREATE TABLE IF NOT EXISTS product_skus (
@@ -226,7 +229,8 @@ INSERT INTO product_skus (id, product_id, sku, price, stock, brand_name, created
 CREATE TABLE IF NOT EXISTS product_attributes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     type VARCHAR(100) NOT NULL,
-    value VARCHAR(100) NOT NULL
+    value VARCHAR(100) NOT NULL,
+    UNIQUE KEY unique_type_value (type, value)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Insert product attributes
@@ -275,6 +279,18 @@ INSERT INTO product_discounts (id, product_id, discount_percent, start_at, end_a
 (1, 1, 50, '2025-04-27 00:46:20', '2025-05-27 12:46:20', '2025-04-27 05:46:36', '2025-05-26 15:37:00'),
 (2, 2, 50, '2025-05-09 14:31:11', '2025-05-11 14:31:11', '2025-05-10 07:31:33', '2025-05-10 07:31:33');
 
+-- Product images table
+CREATE TABLE IF NOT EXISTS product_images (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT NOT NULL,
+    image_url VARCHAR(255) NOT NULL,
+    is_primary TINYINT(1) DEFAULT 0,
+    display_order INT DEFAULT 0,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    INDEX idx_product_id (product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 -- Recently viewed products
 CREATE TABLE IF NOT EXISTS recently_viewed (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -288,9 +304,7 @@ CREATE TABLE IF NOT EXISTS recently_viewed (
 
 -- Insert recently viewed
 INSERT INTO recently_viewed (id, user_id, product_id, viewed_at) VALUES
-(46, 7, 15, '2025-05-23 09:03:01'),
-(56, 7, 12, '2025-05-25 00:15:38'),
-(57, 7, 1, '2025-05-25 00:18:04');
+(46, 7, 15, '2025-05-23 09:03:01'),\n(56, 7, 12, '2025-05-25 00:15:38'),\n(57, 7, 1, '2025-05-25 00:18:04');
 
 -- =====================================================
 -- CART SERVICE DATABASE
@@ -312,28 +326,28 @@ CREATE TABLE IF NOT EXISTS cart (
 INSERT INTO cart (id, user_id, created_at, updated_at, status) VALUES
 (1, 1, '2025-04-23 06:09:00', '2025-04-23 07:05:55', 'ordered'),
 (2, 1, '2025-04-23 07:08:54', '2025-04-23 07:09:08', 'ordered'),
-(46, 1, '2025-09-10 06:54:18', '2025-09-10 06:54:18', 'active');
+(46, 1, '2025-09-10 06:54:18', '2025-11-24 03:34:09', 'ordered'),
+(47, 30, '2025-11-24 17:46:26', '2025-11-24 17:46:26', 'active');
 
 -- Cart items table
 CREATE TABLE IF NOT EXISTS cart_item (
     id INT AUTO_INCREMENT PRIMARY KEY,
     cart_id INT NOT NULL,
-    product_sku_id INT NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
     price DECIMAL(10, 2) NOT NULL,
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     original_price DECIMAL(10, 2) DEFAULT NULL,
     has_discount TINYINT(1) DEFAULT 0,
     discount_percent INT DEFAULT 0,
+    product_id INT NOT NULL,
+    sku_id INT DEFAULT NULL,
     FOREIGN KEY (cart_id) REFERENCES cart(id) ON DELETE CASCADE,
-    INDEX idx_cart (cart_id),
-    INDEX idx_product_sku (product_sku_id)
+    INDEX idx_cart (cart_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Insert cart items (sample)
-INSERT INTO cart_item (id, cart_id, product_sku_id, quantity, price, added_at, original_price, has_discount, discount_percent) VALUES
-(1, 1, 1, 30, 1199.99, '2025-04-23 06:09:00', 1199.99, 0, 0),
-(66, 46, 1, 1, 30000000.00, '2025-09-30 19:28:39', 30000000.00, 0, 0);
+INSERT INTO cart_item (id, cart_id, quantity, price, added_at, original_price, has_discount, discount_percent, product_id, sku_id) VALUES
+(1, 1, 30, 1199.99, '2025-04-23 06:09:00', 1199.99, 0, 0, 1, 1);
 
 -- Wishlist table
 CREATE TABLE IF NOT EXISTS wishlist (
@@ -342,14 +356,14 @@ CREATE TABLE IF NOT EXISTS wishlist (
     product_id INT NOT NULL,
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY unique_wishlist (user_id, product_id),
+    UNIQUE KEY wishlist_user_id_product_id (user_id, product_id),
     INDEX idx_user_id (user_id),
     INDEX idx_product_id (product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Insert wishlist items
 INSERT INTO wishlist (id, user_id, product_id, added_at) VALUES
-(28, 7, 14, '2025-05-22 17:49:11'),
-(39, 1, 1, '2025-08-27 05:16:33');
+(28, 7, 14, '2025-05-22 17:49:11');
 
 -- =====================================================
 -- ORDER SERVICE DATABASE
@@ -376,25 +390,27 @@ CREATE TABLE IF NOT EXISTS orders (
 INSERT INTO orders (id, user_id, cart_id, total, status, shipping_address_id, created_at, updated_at) VALUES
 (1, 1, 1, 35999.70, 'pending', NULL, '2025-04-23 07:05:54', '2025-04-23 07:05:54'),
 (2, 1, 2, 17999.85, 'paid', NULL, '2025-04-23 07:09:08', '2025-04-23 07:09:28'),
-(39, 1, 45, 30010000.00, 'pending', 1, '2025-08-19 10:00:15', '2025-08-19 10:00:15');
+(39, 1, 45, 30010000.00, 'pending', 1, '2025-08-19 10:00:15', '2025-08-19 10:00:15'),
+(41, 30, NULL, 334.99, 'pending', NULL, '2025-11-24 17:47:56', '2025-11-24 17:47:56'),
+(46, 1, 46, 100.00, 'pending', NULL, '2025-11-24 17:55:00', '2025-11-24 17:55:00');
 
 -- Order items table
 CREATE TABLE IF NOT EXISTS order_item (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
-    product_sku_id INT NOT NULL,
     quantity INT NOT NULL,
     price DECIMAL(10, 2) NOT NULL,
+    product_id INT NOT NULL,
+    sku_id INT DEFAULT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-    INDEX idx_order (order_id),
-    INDEX idx_product_sku (product_sku_id)
+    INDEX idx_order (order_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Insert order items (sample)
-INSERT INTO order_item (id, order_id, product_sku_id, quantity, price) VALUES
-(1, 1, 1, 30, 1199.99),
-(2, 2, 1, 15, 1199.99),
-(56, 39, 8, 1, 10000.00);
+INSERT INTO order_item (id, order_id, quantity, price, product_id, sku_id) VALUES
+(1, 1, 30, 1199.99, 1, 1),
+(2, 2, 15, 1199.99, 1, 1),
+(56, 39, 1, 10000.00, 7, 8);
 
 -- Vouchers table
 CREATE TABLE IF NOT EXISTS vouchers (
@@ -437,7 +453,9 @@ CREATE TABLE IF NOT EXISTS payment_details (
 INSERT INTO payment_details (id, order_id, method, status, amount, transaction_id, paid_at) VALUES
 (1, 1, 'vnpay', 'pending', 35999.70, NULL, NULL),
 (2, 2, 'vnpay', 'paid', 17999.85, '14922134', '2025-04-23 14:09:36'),
-(39, 39, 'vnpay', 'failed', 30010000.00, NULL, NULL);
+(39, 39, 'vnpay', 'failed', 30010000.00, NULL, NULL),
+(40, 41, 'vnpay', 'pending', 334.99, '41_1763965477656', NULL),
+(41, 46, 'vnpay', 'pending', 100.00, '46_1763965500341', NULL);
 
 -- =====================================================
 -- NOTIFICATION SERVICE DATABASE
@@ -549,5 +567,7 @@ INSERT INTO notification_events (event_type, template_code, channel, is_active) 
 ('user.registered', 'USER_VERIFICATION', 'email', TRUE),
 ('password.reset_requested', 'PASSWORD_RESET', 'email', TRUE),
 ('order.created', 'ORDER_CONFIRMATION', 'email', TRUE);
+
+COMMIT;
 
 COMMIT;

@@ -75,7 +75,7 @@ document.getElementById('add-coupon-form')?.addEventListener('submit', async (e)
     }
     
     try {
-        const response = await fetch(`${API_BASE_URL}/orders/vouchers`, {
+        const response = await fetch(`${API_BASE_URL}/vouchers`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -105,7 +105,7 @@ async function editCoupon(couponId) {
     const token = getAuthToken();
     
     try {
-        const response = await fetch(`${API_BASE_URL}/orders/vouchers/${couponId}`, {
+        const response = await fetch(`${API_BASE_URL}/vouchers/${couponId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();
@@ -114,20 +114,33 @@ async function editCoupon(couponId) {
             const form = document.getElementById('edit-coupon-form');
             
             // Populate form fields
-            form.querySelector('[name="code"]').value = data.voucher.code;
-            form.querySelector('[name="discount_percent"]').value = data.voucher.discount_percent;
-            form.querySelector('[name="start_at"]').value = data.voucher.start_at.split('T')[0];
-            form.querySelector('[name="end_at"]').value = data.voucher.end_at.split('T')[0];
+            form.querySelector('#edit-coupon-code').value = data.voucher.code;
+            form.querySelector('#edit-discount-percent').value = data.voucher.discount_percent;
+            form.querySelector('#edit-start-date').value = data.voucher.start_at.split('T')[0];
+            form.querySelector('#edit-end-date').value = data.voucher.end_at.split('T')[0];
             
             // Store coupon ID
             form.dataset.couponId = couponId;
             
+            // Remove any existing backdrops
+            document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+            
             // Show edit modal
-            const modal = new bootstrap.Modal(document.getElementById('editCouponModal'));
+            const modalElement = document.getElementById('editCouponModal');
+            let modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+                modal.dispose();
+            }
+            modal = new bootstrap.Modal(modalElement, {
+                backdrop: true,
+                keyboard: true,
+                focus: true
+            });
             modal.show();
         }
     } catch (error) {
         console.error('Failed to load coupon:', error);
+        alert('Failed to load coupon details');
     }
 }
 
@@ -141,7 +154,7 @@ document.getElementById('edit-coupon-form')?.addEventListener('submit', async (e
     const couponData = Object.fromEntries(formData);
     
     try {
-        const response = await fetch(`${API_BASE_URL}/orders/vouchers/${couponId}`, {
+        const response = await fetch(`${API_BASE_URL}/vouchers/${couponId}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -167,7 +180,7 @@ async function deleteCoupon(couponId) {
     const token = getAuthToken();
     
     try {
-        const response = await fetch(`${API_BASE_URL}/orders/vouchers/${couponId}`, {
+        const response = await fetch(`${API_BASE_URL}/vouchers/${couponId}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -194,6 +207,12 @@ function generateCouponCode() {
 // Add generate button functionality
 document.getElementById('generate-code-btn')?.addEventListener('click', () => {
     document.getElementById('coupon-code').value = generateCouponCode();
+});
+
+// Add click handler for add coupon button
+document.getElementById('add-coupon-btn')?.addEventListener('click', () => {
+    const modal = new bootstrap.Modal(document.getElementById('addCouponModal'));
+    modal.show();
 });
 
 // Initialize

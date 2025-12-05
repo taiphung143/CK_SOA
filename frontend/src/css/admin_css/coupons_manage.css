@@ -235,8 +235,30 @@ tr:hover td {
   font-style: italic;
 }
 
+/* Bootstrap Modal Fix */
+.modal-backdrop {
+  z-index: 1040 !important;
+}
+
+.modal.show {
+  z-index: 1055 !important;
+  display: block !important;
+}
+
+.modal-dialog {
+  position: relative;
+  z-index: 1056 !important;
+  pointer-events: auto !important;
+}
+
+.modal-content {
+  position: relative;
+  z-index: 1057 !important;
+  pointer-events: auto !important;
+}
+
 /* Coupon Modal */
-.modal {
+.modal.custom-modal {
   display: none;
   position: fixed;
   z-index: 1000;

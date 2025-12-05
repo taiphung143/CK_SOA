@@ -69,7 +69,8 @@ class OrderController {
       const orderItems = await Promise.all(cart.items.map(async (item) => {
         return await OrderItem.create({
           order_id: order.id,
-          product_sku_id: item.product_sku_id,
+          product_id: item.product_id,
+          sku_id: item.sku_id,
           quantity: item.quantity,
           price: item.price
         });
@@ -80,14 +81,16 @@ class OrderController {
       console.log('Updating stock in Product Service...');
       for (const item of cart.items) {
         try {
-          await axios.put(
-            `${PRODUCT_SERVICE_URL}/api/products/sku/${item.product_sku_id}/stock`,
-            {
-              quantity: item.quantity,
-              operation: 'subtract'
-            }
-          );
-          console.log(`✅ Stock updated for SKU ${item.product_sku_id}`);
+          if (item.sku_id) {
+            await axios.put(
+              `${PRODUCT_SERVICE_URL}/api/products/sku/${item.sku_id}/stock`,
+              {
+                quantity: item.quantity,
+                operation: 'subtract'
+              }
+            );
+            console.log(`✅ Stock updated for SKU ${item.sku_id}`);
+          }
         } catch (error) {
           console.error('❌ Failed to update stock:', error.message);
         }
@@ -220,23 +223,38 @@ class OrderController {
       // Fetch product details for each order item
       const itemsWithProductDetails = await Promise.all(order.items.map(async (item) => {
         try {
-          const productResponse = await axios.get(`${PRODUCT_SERVICE_URL}/api/products/sku/${item.product_sku_id}`);
-          const skuData = productResponse.data.data;
+          if (item.sku_id) {
+            const productResponse = await axios.get(`${PRODUCT_SERVICE_URL}/api/products/sku/${item.sku_id}`);
+            const skuData = productResponse.data.data;
 
-          return {
-            id: item.id,
-            product_sku_id: item.product_sku_id,
-            quantity: item.quantity,
-            price: item.price,
-            product_name: skuData.product?.name || 'Unknown Product',
-            product_image: skuData.product?.image_thumbnail || '../images/default-product.jpg',
-            sku_name: skuData.sku || 'N/A'
-          };
+            return {
+              id: item.id,
+              product_id: item.product_id,
+              sku_id: item.sku_id,
+              quantity: item.quantity,
+              price: item.price,
+              product_name: skuData.product?.name || 'Unknown Product',
+              product_image: skuData.product?.image_thumbnail || '../images/default-product.jpg',
+              sku_name: skuData.sku || 'N/A'
+            };
+          } else {
+            return {
+              id: item.id,
+              product_id: item.product_id,
+              sku_id: item.sku_id,
+              quantity: item.quantity,
+              price: item.price,
+              product_name: 'Unknown Product',
+              product_image: '../images/default-product.jpg',
+              sku_name: 'N/A'
+            };
+          }
         } catch (error) {
-          console.error(`Failed to fetch product details for SKU ${item.product_sku_id}:`, error.message);
+          console.error(`Failed to fetch product details for SKU ${item.sku_id}:`, error.message);
           return {
             id: item.id,
-            product_sku_id: item.product_sku_id,
+            product_id: item.product_id,
+            sku_id: item.sku_id,
             quantity: item.quantity,
             price: item.price,
             product_name: 'Product Unavailable',
@@ -376,14 +394,14 @@ class OrderController {
 
   async getRevenue(req, res, next) {
     try {
-      const total = await Order.sum('total_amount') || 0;
+      const total = await Order.sum('total') || 0;
       
       // Get monthly revenue for the last 12 months
       const monthlyRevenue = await Order.findAll({
         attributes: [
           [sequelize.fn('YEAR', sequelize.col('created_at')), 'year'],
           [sequelize.fn('MONTH', sequelize.col('created_at')), 'month'],
-          [sequelize.fn('SUM', sequelize.col('total_amount')), 'amount']
+          [sequelize.fn('SUM', sequelize.col('total')), 'amount']
         ],
         where: {
           created_at: {

@@ -26,7 +26,10 @@ const authenticateToken = (req, res, next) => {
 };
 
 const isAdmin = (req, res, next) => {
-  if (req.user.role !== 'admin') {
+  // Support both JWT user object and x-user-role header
+  const userRole = req.user?.role || req.headers['x-user-role'];
+  
+  if (userRole !== 'admin') {
     return res.status(403).json({
       success: false,
       message: 'Admin access required'
