@@ -8,6 +8,38 @@ let selectedAddress = null;
 let selectedPaymentMethod = 'cod';
 let appliedVoucher = null;
 
+// Show error message with styling
+function showErrorMessage(message) {
+    // Remove any existing error messages
+    const existingError = document.querySelector('.stock-error-message');
+    if (existingError) {
+        existingError.remove();
+    }
+
+    // Create error alert
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'alert alert-danger alert-dismissible fade show stock-error-message';
+    errorDiv.style.cssText = 'position: fixed; top: 80px; right: 20px; z-index: 9999; max-width: 500px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+    errorDiv.innerHTML = `
+        <div class="d-flex align-items-start">
+            <i class="fas fa-exclamation-circle me-2 mt-1" style="font-size: 1.2em;"></i>
+            <div>
+                <strong>Out of Stock</strong>
+                <div style="white-space: pre-line; margin-top: 5px;">${message}</div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    document.body.appendChild(errorDiv);
+
+    // Auto-dismiss after 10 seconds
+    setTimeout(() => {
+        if (errorDiv && errorDiv.parentNode) {
+            errorDiv.remove();
+        }
+    }, 10000);
+}
+
 // Initialize checkout page
 document.addEventListener('DOMContentLoaded', () => {
     checkAuthentication();
@@ -391,11 +423,23 @@ async function placeOrder() {
             })
         });
 
-        if (!orderResponse.ok) {
-            throw new Error('Failed to create order');
-        }
-
         const orderData = await orderResponse.json();
+
+        if (!orderResponse.ok) {
+            // Handle out of stock error
+            if (orderData.details && Array.isArray(orderData.details)) {
+                const outOfStockItems = orderData.details.map(item => {
+                    const cartItem = cartData.items.find(ci => ci.sku_id === item.sku_id);
+                    return `${cartItem ? cartItem.product_name : 'Item'} (requested: ${item.requested}, available: ${item.available})`;
+                }).join('\n');
+                
+                showErrorMessage(`Some items are out of stock:\n${outOfStockItems}`);
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<i class="fas fa-check-circle"></i> Place Order';
+                return;
+            }
+            throw new Error(orderData.message || 'Failed to create order');
+        }
         console.log('Order response:', orderData);
         console.log('Order response structure:', JSON.stringify(orderData, null, 2));
         console.log('Order data exists:', !!orderData.data);
@@ -459,7 +503,7 @@ async function placeOrder() {
         console.error('Place order error:', error);
         console.error('Error details:', error.message);
         console.error('Error stack:', error.stack);
-        alert('Failed to place order. Please try again. Error: ' + error.message);
+        showErrorMessage('Failed to place order. Please try again.\n' + error.message);
         submitButton.disabled = false;
         submitButton.innerHTML = '<i class="fas fa-check-circle"></i> Place Order';
     }

@@ -29,12 +29,18 @@ const isAdmin = (req, res, next) => {
   // Support both JWT user object and x-user-role header
   const userRole = req.user?.role || req.headers['x-user-role'];
   
-  if (userRole !== 'admin') {
+  console.log('isAdmin middleware - Role:', userRole);
+  console.log('isAdmin middleware - Headers:', req.headers['x-user-role'], req.headers['x-user-id']);
+  
+  if (!userRole || userRole !== 'admin') {
+    console.log('isAdmin middleware - Access denied. Role:', userRole);
     return res.status(403).json({
       success: false,
       message: 'Admin access required'
     });
   }
+  
+  console.log('isAdmin middleware - Access granted');
   next();
 };
 

@@ -74,6 +74,15 @@ document.getElementById('add-coupon-form')?.addEventListener('submit', async (e)
         return;
     }
     
+    if (!token) {
+        alert('You must be logged in to create coupons');
+        window.location.href = '../login.html';
+        return;
+    }
+    
+    console.log('Creating coupon with data:', couponData);
+    console.log('Token:', token ? 'Present' : 'Missing');
+    
     try {
         const response = await fetch(`${API_BASE_URL}/vouchers`, {
             method: 'POST',
@@ -84,7 +93,10 @@ document.getElementById('add-coupon-form')?.addEventListener('submit', async (e)
             body: JSON.stringify(couponData)
         });
         
+        console.log('Response status:', response.status);
+        
         const data = await response.json();
+        console.log('Response data:', data);
         
         if (response.ok && data.success) {
             alert('Coupon created successfully');
@@ -92,11 +104,11 @@ document.getElementById('add-coupon-form')?.addEventListener('submit', async (e)
             loadCoupons();
             bootstrap.Modal.getInstance(document.getElementById('addCouponModal'))?.hide();
         } else {
-            alert(data.message || 'Failed to create coupon');
+            alert(data.message || `Failed to create coupon (Status: ${response.status})`);
         }
     } catch (error) {
         console.error('Failed to add coupon:', error);
-        alert('Failed to create coupon');
+        alert('Failed to create coupon: ' + error.message);
     }
 });
 
@@ -122,8 +134,8 @@ async function editCoupon(couponId) {
             // Store coupon ID
             form.dataset.couponId = couponId;
             
-            // Remove any existing backdrops
-            document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+            // Clean up any existing backdrops
+            cleanupBackdrops();
             
             // Show edit modal
             const modalElement = document.getElementById('editCouponModal');
@@ -132,11 +144,16 @@ async function editCoupon(couponId) {
                 modal.dispose();
             }
             modal = new bootstrap.Modal(modalElement, {
-                backdrop: true,
+                backdrop: false,
                 keyboard: true,
                 focus: true
             });
             modal.show();
+            
+            // Add close handler
+            modalElement.addEventListener('hidden.bs.modal', () => {
+                cleanupBackdrops();
+            }, { once: true });
         }
     } catch (error) {
         console.error('Failed to load coupon:', error);
@@ -209,10 +226,38 @@ document.getElementById('generate-code-btn')?.addEventListener('click', () => {
     document.getElementById('coupon-code').value = generateCouponCode();
 });
 
+// Clean up modal backdrops
+function cleanupBackdrops() {
+    // Remove all modal backdrops
+    document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+    
+    // Remove modal-open class from body
+    document.body.classList.remove('modal-open');
+    
+    // Reset body overflow and padding
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+    
+    // Remove all inline styles from body (aggressive cleanup)
+    if (document.body.style.length === 0) {
+        document.body.removeAttribute('style');
+    }
+}
+
 // Add click handler for add coupon button
 document.getElementById('add-coupon-btn')?.addEventListener('click', () => {
-    const modal = new bootstrap.Modal(document.getElementById('addCouponModal'));
+    cleanupBackdrops();
+    const modalElement = document.getElementById('addCouponModal');
+    const modal = new bootstrap.Modal(modalElement, {
+        backdrop: false,
+        keyboard: true
+    });
     modal.show();
+    
+    // Add close handler
+    modalElement.addEventListener('hidden.bs.modal', () => {
+        cleanupBackdrops();
+    }, { once: true });
 });
 
 // Initialize

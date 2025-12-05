@@ -85,7 +85,7 @@ body {
 }
 
 .card-header {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+    /* background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%); */
     color: white;
     padding: 24px 28px;
     border-bottom: none;
@@ -133,7 +133,7 @@ body {
 }
 
 /* Breadcrumb */
-.breadcrumb {
+.breadcrumb-checkout {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
     padding: 18px 24px;
     border-radius: 12px;
@@ -147,7 +147,7 @@ body {
     border: 1px solid rgba(75, 62, 196, 0.1);
 }
 
-.breadcrumb a {
+.breadcrumb-checkout a {
     color: var(--light-text);
     font-weight: 600;
     font-size: 14px;
@@ -156,7 +156,7 @@ body {
     position: relative;
 }
 
-.breadcrumb a::after {
+.breadcrumb-checkout a::after {
     content: '';
     position: absolute;
     bottom: -2px;
@@ -167,21 +167,21 @@ body {
     transition: var(--transition);
 }
 
-.breadcrumb a:hover {
+.breadcrumb-checkout a:hover {
     color: var(--primary-color);
 }
 
-.breadcrumb a:hover::after {
+.breadcrumb-checkout a:hover::after {
     width: 100%;
 }
 
-.breadcrumb span {
+.breadcrumb-checkout span {
     color: #6C757D;
     font-weight: 600;
     font-size: 14px;
 }
 
-.breadcrumb .current {
+.breadcrumb-checkout .current {
     color: var(--primary-color);
     font-weight: 700;
 }

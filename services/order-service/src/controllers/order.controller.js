@@ -84,15 +84,48 @@ class OrderController {
       console.log('- Tax:', tax_amount);
       console.log('- Total:', total_amount);
 
+      // Reserve stock first
+      console.log('Reserving stock...');
+      const stockItems = cart.items.map(item => ({
+        sku_id: item.sku_id,
+        quantity: item.quantity
+      }));
+
+      try {
+        const reserveResponse = await axios.post(
+          `${PRODUCT_SERVICE_URL}/api/products/stock/reserve`,
+          { items: stockItems }
+        );
+        console.log('✅ Stock reserved successfully');
+      } catch (error) {
+        console.error('❌ Failed to reserve stock:', error.response?.data || error.message);
+        return res.status(400).json({
+          success: false,
+          message: 'Some items are out of stock',
+          details: error.response?.data?.unavailableItems || []
+        });
+      }
+
       // Create order
       console.log('Creating order...');
-      const order = await Order.create({
-        user_id: userId,
-        total: total_amount,
-        status: 'pending',
-        shipping_address_id: null
-      });
-      console.log('✅ Order created:', order.id);
+      let order;
+      try {
+        order = await Order.create({
+          user_id: userId,
+          total: total_amount,
+          status: 'pending',
+          shipping_address_id: null
+        });
+        console.log('✅ Order created:', order.id);
+      } catch (error) {
+        // Release stock if order creation fails
+        console.error('❌ Order creation failed, releasing stock...');
+        await axios.post(
+          `${PRODUCT_SERVICE_URL}/api/products/stock/release`,
+          { items: stockItems }
+        ).catch(err => console.error('Failed to release stock:', err.message));
+        throw error;
+      }
 
       // Create order items
       console.log('Creating order items...');
@@ -106,25 +139,6 @@ class OrderController {
         });
       }));
       console.log(`✅ Created ${orderItems.length} order items`);
-
-      // Update stock in Product Service
-      console.log('Updating stock in Product Service...');
-      for (const item of cart.items) {
-        try {
-          if (item.sku_id) {
-            await axios.put(
-              `${PRODUCT_SERVICE_URL}/api/products/sku/${item.sku_id}/stock`,
-              {
-                quantity: item.quantity,
-                operation: 'subtract'
-              }
-            );
-            console.log(`✅ Stock updated for SKU ${item.sku_id}`);
-          }
-        } catch (error) {
-          console.error('❌ Failed to update stock:', error.message);
-        }
-      }
 
       // Clear cart
       console.log('Clearing cart...');
@@ -241,8 +255,18 @@ class OrderController {
       const isAdminUser = req.user?.isAdmin || req.headers['x-is-admin'] === 'true';
       const { id } = req.params;
 
-      // Admin can view any order, regular users can only view their own orders
-      const whereClause = isAdminUser ? { id } : { id, user_id: userId };
+      // Allow internal service calls (no user context) or admin access or owner access
+      let whereClause;
+      if (!userId) {
+        // Internal service call - allow access to any order
+        whereClause = { id };
+      } else if (isAdminUser) {
+        // Admin can view any order
+        whereClause = { id };
+      } else {
+        // Regular users can only view their own orders
+        whereClause = { id, user_id: userId };
+      }
 
       const order = await Order.findOne({
         where: whereClause,
@@ -353,7 +377,7 @@ class OrderController {
       // Determine order status based on payment status
       let newOrderStatus = order.status;
       if (payment_status === 'paid') {
-        newOrderStatus = 'processing';
+        newOrderStatus = 'paid';
       } else if (payment_status === 'failed') {
         // Only update to cancelled if order is still pending
         if (order.status === 'pending') {
@@ -362,7 +386,6 @@ class OrderController {
       }
 
       await order.update({ 
-        payment_status,
         status: newOrderStatus
       });
 

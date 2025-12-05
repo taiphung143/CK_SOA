@@ -4,6 +4,7 @@ const momoService = require('../services/momo.service');
 const axios = require('axios');
 
 const ORDER_SERVICE_URL = process.env.ORDER_SERVICE_URL || 'http://order-service:3004';
+const PRODUCT_SERVICE_URL = process.env.PRODUCT_SERVICE_URL || 'http://product-service:3002';
 
 class PaymentController {
   async createPayment(req, res, next) {
@@ -191,7 +192,7 @@ class PaymentController {
       if (responseCode === '00') {
         // Payment successful
         await payment.update({
-          status: 'completed',
+          status: 'paid',
           paid_at: new Date(),
           payment_data: { ...payment.payment_data, vnpParams }
         });
@@ -202,6 +203,26 @@ class PaymentController {
           { payment_status: 'paid' }
         );
 
+        // Confirm stock (deduct from actual stock and remove from pending)
+        try {
+          const orderResponse = await axios.get(`${ORDER_SERVICE_URL}/api/orders/${orderId}`);
+          const order = orderResponse.data.data;
+          
+          if (order.order_items && order.order_items.length > 0) {
+            const stockItems = order.order_items.map(item => ({
+              sku_id: item.sku_id,
+              quantity: item.quantity
+            }));
+            
+            await axios.post(`${PRODUCT_SERVICE_URL}/api/products/stock/confirm`, {
+              items: stockItems
+            });
+            console.log(`✅ Stock confirmed for order ${orderId}`);
+          }
+        } catch (error) {
+          console.error(`❌ Failed to confirm stock for order ${orderId}:`, error.message);
+        }
+
         return res.redirect(`${process.env.FRONTEND_URL}/order-success.html?order_id=${orderId}&vnp_ResponseCode=00`);
       } else {
         // Payment failed
@@ -210,6 +231,26 @@ class PaymentController {
           `${ORDER_SERVICE_URL}/api/orders/${orderId}/payment-status`,
           { payment_status: 'failed' }
         );
+
+        // Release reserved stock
+        try {
+          const orderResponse = await axios.get(`${ORDER_SERVICE_URL}/api/orders/${orderId}`);
+          const order = orderResponse.data.data;
+          
+          if (order.items && order.items.length > 0) {
+            const stockItems = order.items.map(item => ({
+              sku_id: item.sku_id,
+              quantity: item.quantity
+            }));
+            
+            await axios.post(`${PRODUCT_SERVICE_URL}/api/products/stock/release`, {
+              items: stockItems
+            });
+            console.log(`✅ Stock released for order ${orderId}`);
+          }
+        } catch (error) {
+          console.error(`❌ Failed to release stock for order ${orderId}:`, error.message);
+        }
 
         return res.redirect(`${process.env.FRONTEND_URL}/payment-failed.html?order_id=${orderId}&message=VNPay+payment+failed`);
       }
@@ -251,9 +292,9 @@ class PaymentController {
 
       if (responseCode === '00' && transactionStatus === '00') {
         // Payment successful
-        if (payment.status !== 'completed') {
+        if (payment.status !== 'paid') {
           await payment.update({
-            status: 'completed',
+            status: 'paid',
             paid_at: new Date(),
             payment_data: { ...payment.payment_data, vnpParams }
           });
@@ -331,7 +372,7 @@ class PaymentController {
       if (resultCode === 0) {
         // Payment successful
         await payment.update({
-          status: 'completed',
+          status: 'paid',
           paid_at: new Date(),
           payment_data: { ...payment.payment_data, momoData }
         });
@@ -340,6 +381,26 @@ class PaymentController {
           `${ORDER_SERVICE_URL}/api/orders/${orderId}/payment-status`,
           { payment_status: 'paid' }
         );
+
+        // Confirm stock (deduct from actual stock and remove from pending)
+        try {
+          const orderResponse = await axios.get(`${ORDER_SERVICE_URL}/api/orders/${orderId}`);
+          const order = orderResponse.data.data;
+          
+          if (order.items && order.items.length > 0) {
+            const stockItems = order.items.map(item => ({
+              sku_id: item.sku_id,
+              quantity: item.quantity
+            }));
+            
+            await axios.post(`${PRODUCT_SERVICE_URL}/api/products/stock/confirm`, {
+              items: stockItems
+            });
+            console.log(`✅ Stock confirmed for order ${orderId}`);
+          }
+        } catch (error) {
+          console.error(`❌ Failed to confirm stock for order ${orderId}:`, error.message);
+        }
 
         // Redirect to success page for GET requests
         if (req.method === 'GET') {
@@ -364,6 +425,26 @@ class PaymentController {
           console.log(`✅ Order ${orderId} payment status updated to failed`);
         } catch (orderError) {
           console.error(`❌ Failed to update order status for ${orderId}:`, orderError.message);
+        }
+
+        // Release reserved stock
+        try {
+          const orderResponse = await axios.get(`${ORDER_SERVICE_URL}/api/orders/${orderId}`);
+          const order = orderResponse.data.data;
+          
+          if (order.items && order.items.length > 0) {
+            const stockItems = order.items.map(item => ({
+              sku_id: item.sku_id,
+              quantity: item.quantity
+            }));
+            
+            await axios.post(`${PRODUCT_SERVICE_URL}/api/products/stock/release`, {
+              items: stockItems
+            });
+            console.log(`✅ Stock released for order ${orderId}`);
+          }
+        } catch (error) {
+          console.error(`❌ Failed to release stock for order ${orderId}:`, error.message);
         }
 
         // Redirect to failed page for GET requests

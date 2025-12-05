@@ -251,13 +251,17 @@ class ProductController {
         });
       }
 
+      const availableStock = sku.stock - (sku.pending_stock || 0);
+      
       res.json({
         success: true,
         data: {
           sku_id: sku.id,
           price: sku.price,
           stock_quantity: sku.stock,
-          is_available: sku.stock > 0
+          pending_stock: sku.pending_stock || 0,
+          available_stock: availableStock,
+          is_available: availableStock > 0
         }
       });
     } catch (error) {
@@ -345,6 +349,134 @@ class ProductController {
       res.json({
         success: true,
         total: total
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async reserveStock(req, res, next) {
+    try {
+      const { items } = req.body; // items: [{ sku_id, quantity }]
+
+      if (!items || !Array.isArray(items)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Items array is required'
+        });
+      }
+
+      const results = [];
+      const unavailableItems = [];
+
+      for (const item of items) {
+        const sku = await ProductSKU.findByPk(item.sku_id);
+        
+        if (!sku) {
+          unavailableItems.push({
+            sku_id: item.sku_id,
+            reason: 'SKU not found'
+          });
+          continue;
+        }
+
+        const availableStock = sku.stock - (sku.pending_stock || 0);
+        
+        if (availableStock < item.quantity) {
+          unavailableItems.push({
+            sku_id: item.sku_id,
+            requested: item.quantity,
+            available: availableStock,
+            reason: 'Insufficient stock'
+          });
+          continue;
+        }
+
+        // Reserve stock
+        await sku.update({
+          pending_stock: (sku.pending_stock || 0) + item.quantity
+        });
+
+        results.push({
+          sku_id: item.sku_id,
+          reserved: item.quantity,
+          available_stock: sku.stock - sku.pending_stock
+        });
+      }
+
+      if (unavailableItems.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Some items are not available',
+          unavailableItems
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Stock reserved successfully',
+        data: results
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async releaseStock(req, res, next) {
+    try {
+      const { items } = req.body; // items: [{ sku_id, quantity }]
+
+      if (!items || !Array.isArray(items)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Items array is required'
+        });
+      }
+
+      for (const item of items) {
+        const sku = await ProductSKU.findByPk(item.sku_id);
+        
+        if (sku) {
+          await sku.update({
+            pending_stock: Math.max(0, (sku.pending_stock || 0) - item.quantity)
+          });
+        }
+      }
+
+      res.json({
+        success: true,
+        message: 'Stock released successfully'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async confirmStock(req, res, next) {
+    try {
+      const { items } = req.body; // items: [{ sku_id, quantity }]
+
+      if (!items || !Array.isArray(items)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Items array is required'
+        });
+      }
+
+      for (const item of items) {
+        const sku = await ProductSKU.findByPk(item.sku_id);
+        
+        if (sku) {
+          await sku.update({
+            stock: Math.max(0, sku.stock - item.quantity),
+            pending_stock: Math.max(0, (sku.pending_stock || 0) - item.quantity)
+          });
+        }
+      }
+
+      res.json({
+        success: true,
+        message: 'Stock confirmed and deducted successfully'
       });
     } catch (error) {
       next(error);

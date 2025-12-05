@@ -766,7 +766,44 @@ app.post('/api/vouchers/validate', async (req, res) => {
   }
 });
 
-// Voucher routes (handled by order service)
+// Manual route for POST /api/vouchers (admin only)
+app.post('/api/vouchers', async (req, res) => {
+  console.log(`[${new Date().toISOString()}] ✅ Manual proxy route HIT: POST /api/vouchers`);
+  
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    const jwt = require('jsonwebtoken');
+    const decoded = jwt.decode(token);
+    
+    const headers = {
+      'Content-Type': 'application/json',
+      'x-user-id': decoded?.userId?.toString() || '',
+      'x-user-role': decoded?.role || ''
+    };
+    
+    console.log('Forwarding to order service with headers:', headers);
+    console.log('Body:', req.body);
+    
+    const response = await axios.post(`${SERVICES.order}/api/orders/vouchers`, req.body, {
+      headers,
+      timeout: 30000
+    });
+    
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] ❌ Voucher creation proxy error:`, error.message);
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(502).json({
+        success: false,
+        message: 'Service unavailable'
+      });
+    }
+  }
+});
+
+// Voucher routes (handled by order service) - GET, PUT, DELETE
 app.use('/api/vouchers', createProxyMiddleware({
   ...proxyOptions('order'),
   pathRewrite: {

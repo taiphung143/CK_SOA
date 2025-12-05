@@ -237,7 +237,7 @@ function showAddProductModal() {
     // Show modal without backdrop, we'll handle it manually
     const modalElement = document.getElementById('productModal');
     const modal = new bootstrap.Modal(modalElement, {
-        backdrop: 'static',
+        backdrop: false,
         keyboard: true,
         focus: true
     });
@@ -414,7 +414,7 @@ function showProductDetailsModal(product) {
     // Show modal without backdrop, we'll handle it manually
     const modalElement = document.getElementById('productModal');
     const modal = new bootstrap.Modal(modalElement, {
-        backdrop: 'static',
+        backdrop: false,
         keyboard: true,
         focus: true
     });
@@ -452,7 +452,7 @@ async function editProduct(productId) {
             // Show edit modal
             const modalElement = document.getElementById('editProductModal');
             const modal = new bootstrap.Modal(modalElement, {
-                backdrop: 'static',
+                backdrop: false,
                 keyboard: true,
                 focus: true
             });

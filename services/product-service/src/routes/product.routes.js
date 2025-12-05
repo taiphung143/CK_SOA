@@ -9,6 +9,11 @@ router.get('/sku/:sku_id/stock', productController.checkStock);
 router.get('/sku/:sku_id', productController.getSKU);
 router.get('/:id(\\d+)', productController.getProduct); // Only match numeric IDs
 
+// Stock management routes
+router.post('/stock/reserve', productController.reserveStock);
+router.post('/stock/release', productController.releaseStock);
+router.post('/stock/confirm', productController.confirmStock);
+
 // Admin routes (authentication should be handled by API Gateway)
 router.post('/', productController.createProduct);
 router.put('/:id', productController.updateProduct);

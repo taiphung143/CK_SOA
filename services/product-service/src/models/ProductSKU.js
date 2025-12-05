@@ -29,6 +29,11 @@ const ProductSKU = sequelize.define('ProductSKU', {
     type: DataTypes.INTEGER,
     defaultValue: 0
   },
+  pending_stock: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    comment: 'Stock reserved for pending orders'
+  },
   brand_name: {
     type: DataTypes.STRING(100),
     allowNull: true

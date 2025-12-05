@@ -23,7 +23,7 @@ class MoMoService {
     const timestamp = Date.now();
     const requestId = `${orderId}_${timestamp}`;
     const uniqueOrderId = `${orderId}_${timestamp}`;
-    const requestType = 'captureWallet';
+    const requestType = 'payWithATM';
     const extraData = '';
 
     const rawSignature = `accessKey=${this.accessKey}&amount=${amount}&extraData=${extraData}&ipnUrl=${this.ipnUrl}&orderId=${uniqueOrderId}&orderInfo=${orderInfo}&partnerCode=${this.partnerCode}&redirectUrl=${this.redirectUrl}&requestId=${requestId}&requestType=${requestType}`;

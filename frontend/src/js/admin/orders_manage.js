@@ -226,9 +226,50 @@ function showOrderDetailsModal(order) {
         </div>
     `;
     
-    // Show Bootstrap modal using correct modal ID
-    const modal = new bootstrap.Modal(document.getElementById('orderModal'));
+    // Show Bootstrap modal without backdrop
+    const modalElement = document.getElementById('orderModal');
+    
+    // Clean up any existing backdrops before showing
+    cleanupBackdrops();
+    
+    const modal = new bootstrap.Modal(modalElement, {
+        backdrop: false,  // Disable backdrop completely
+        keyboard: true
+    });
+    
     modal.show();
+    
+    // Add event listener for modal hide to ensure cleanup
+    modalElement.addEventListener('hidden.bs.modal', function () {
+        cleanupBackdrops();
+    }, { once: true });
+    
+    // Add manual close button handler
+    const closeButtons = modalElement.querySelectorAll('[data-bs-dismiss="modal"]');
+    closeButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            modal.hide();
+            cleanupBackdrops();
+        }, { once: true });
+    });
+}
+
+// Clean up modal backdrops
+function cleanupBackdrops() {
+    // Remove all modal backdrops
+    document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+    
+    // Remove modal-open class from body
+    document.body.classList.remove('modal-open');
+    
+    // Reset body overflow and padding
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+    
+    // Remove all inline styles from body (aggressive cleanup)
+    if (document.body.style.length === 0) {
+        document.body.removeAttribute('style');
+    }
 }
 
 // Filter orders by status
